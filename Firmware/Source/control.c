@@ -24,7 +24,11 @@
  * @todo
  * replace SERVO_NEUTRAL with RC command center position value
  *
- * Change: restored sensor calibration
+ * Change: removed function stabilize()
+ *         removed pitch control from function altitude_control()
+ *         added static functions for pitch control and roll control
+ *         call to control functions moved outside switch(mode)
+ *         renamed several variables, added remarks in function headers
  *
  *============================================================================*/
 
@@ -58,6 +62,11 @@
   #define Get_Gain Simulator_Get_Gain
 #endif
 
+/* RC elevator command [-500,500] to desired pitch [-45°,+45°] conversion factor */
+#define ELEV_TO_PITCH   636.61f
+/* RC aileron command [-500,500] to desired bank [-60°,60°] conversion factor */
+#define AIL_TO_BANK     477.46f
+
 /*----------------------------------- Macros ---------------------------------*/
 
 /*-------------------------------- Enumerations ------------------------------*/
@@ -70,6 +79,7 @@
 
 /*----------------------------------- Locals ---------------------------------*/
 
+static uint8_t uc_current_mode;
 static int16_t i_aileron;                           /* aileron servo position */
 static int16_t i_elevator;                          /* elevator servo position */
 static int16_t i_throttle;                          /* throttle servo position */
@@ -77,18 +87,22 @@ static xPID Roll_Pid;                               /* roll PID */
 static xPID Pitch_Pid;                              /* pitch PID */
 static xPID Nav_Pid;                                /* navigation PID */
 static float f_temp;                                /* */
-static float f_output;                              /* PID output */
-static float f_pitch = 0.0f;                        /* pitch */
-static float f_roll = 0.0f;                         /* roll */
-static float f_heading = 0.0f;                      /* heading */
+static float f_ctrl_elevator;                        /* */
+static float f_ctrl_aileron;                         /* */
+static float f_ctrl_throttle = MINIMUMTHROTTLE;      /* commanded throttle */
+static float f_ahrs_pitch = 0.0f;                    /* pitch */
+static float f_ahrs_roll = 0.0f;                     /* roll */
+static float f_ahrs_heading = 0.0f;                  /* heading */
+static float f_nav_pitch = 0.0f;                     /*  */
+static float f_nav_roll = 0.0f;                      /*  */
 static float f_height_margin = HEIGHT_MARGIN;        /* altitude hold margin */
-static float f_throttle = MINIMUMTHROTTLE;           /* commanded throttle */
 static float f_throttle_min = ALT_HOLD_THROTTLE_MIN; /* altitude hold min throttle */
 static float f_throttle_max = ALT_HOLD_THROTTLE_MAX; /* altitude hold max throttle */
 
 /*--------------------------------- Prototypes -------------------------------*/
 
-__inline static void stabilize( void );
+__inline static void roll_control( void );
+__inline static void pitch_control( void );
 __inline static void direction_control( void );
 __inline static void altitude_control( void );
 __inline static void camera_control( void );
@@ -131,7 +145,6 @@ void Init_Control(void )
     PID_Init(&Nav_Pid);
 }
 
-
 /*----------------------------------------------------------------------------
  *
  * @brief   Control
@@ -142,10 +155,9 @@ void Init_Control(void )
 void Control ( void ) {
 
     static uint8_t uc_old_mode = MODE_MANUAL;
-    uint8_t uc_current_mode;
     float f_max_roll;
 
-    /* update PID gains */
+    /* update PID gains from telemetry */
 #if (0)
     Pitch_Pid.fKp = Get_Gain(TEL_PITCH_KP);
     Pitch_Pid.fKi = Get_Gain(TEL_PITCH_KI);
@@ -157,43 +169,50 @@ void Control ( void ) {
 #endif
     f_max_roll = Get_Gain(TEL_NAV_BANK);
 
+    /* update PID gains from RC auxiliary controls */
     Roll_Pid.fKp = (float)(Get_RC_Channel(KP_CHANNEL) - 1000) / 500.0f;
     Roll_Pid.fKi = (float)(Get_RC_Channel(KI_CHANNEL) - 1000) / 1000.0f;
 	if (Roll_Pid.fKp < 0.0f ) { Roll_Pid.fKp = 0.0f; }
 	if (Roll_Pid.fKi < 0.0f ) { Roll_Pid.fKi = 0.0f; }
 
-    /* read RC commands */
+    /* read aircraft attitude */
+    f_ahrs_heading = AHRS_Yaw_Rad( );
+    f_ahrs_pitch = AHRS_Pitch_Rad( );
+    f_ahrs_roll = AHRS_Roll_Rad( );
+
+    /* limit roll */
+    if (f_ahrs_roll < -f_max_roll) {
+        f_ahrs_roll = -f_max_roll;
+    } else if (f_ahrs_roll > f_max_roll) {
+        f_ahrs_roll = f_max_roll;
+    }
+
+    /* read RC controls */
     i_aileron = Get_RC_Channel(AILERON_CHANNEL);
     i_elevator = Get_RC_Channel(ELEVATOR_CHANNEL);
     i_throttle = Get_RC_Channel(THROTTLE_CHANNEL);
 
-    /* read aircraft attitude */
-    f_heading = AHRS_Yaw_Rad( );
-    f_pitch = AHRS_Pitch_Rad( );
-    f_roll = AHRS_Roll_Rad( );
-
-    /* limit roll */
-    if (f_roll < -f_max_roll) {
-        f_roll = -f_max_roll;
-    } else if (f_roll > f_max_roll) {
-        f_roll = f_max_roll;
-    }
-
+    /* read RC mode */
     uc_current_mode = Get_RC_Mode();
+
+    /* update controls */
+    direction_control();
+    altitude_control();
+    pitch_control();
+    roll_control();
 
     switch (uc_current_mode) {
 
-        case MODE_STAB:             /* STABILIZED MODE */
-            stabilize();
-            break;
-
         case MODE_NAV:              /* NAVIGATION MODE */
-            direction_control();
-            altitude_control();
+            i_throttle = SERVO_NEUTRAL + (int16_t)(500.0f * f_ctrl_throttle);
+
+        case MODE_STAB:             /* STABILIZED MODE */
+            i_elevator = SERVO_NEUTRAL + (int16_t)f_ctrl_elevator;
+            i_aileron = SERVO_NEUTRAL + (int16_t)f_ctrl_aileron;
             break;
 
         case MODE_FPV:              /* FPV MODE */
-            camera_control();
+/*            camera_control();*/
             break;
 
         case MODE_MANUAL:           /* MANUAL MODE */
@@ -219,45 +238,34 @@ void Control ( void ) {
     Set_Servo(SERVO_THROTTLE, i_throttle);
 }
 
-
 /*----------------------------------------------------------------------------
  *
- * @brief   stabilize aircraft
+ * @brief   control of aircraft direction
  * @return  -
- * @remarks -
+ * @remarks direction is controlled adjusting aircraft roll.
+ *          Control implemented as a PI(D) loop.
+ *          Input is set to zero, setpoint is the direction error, i.e. the
+ *          difference between the heading computed by AHRS and the bearing
+ *          to next waypoint, computed by navigation module.
+ *          The direction error is limited between -PI, PI and normalized
+ *          to -1, 1.
+ *          The roll angle is limited inside PID loop to maximum bank angle.
  *
- *----------------------------------------------------------------------------*/
-__inline static void stabilize( void ) {
-
-  i_aileron -= SERVO_NEUTRAL;
-  i_elevator -= SERVO_NEUTRAL;
-
-  /* pitch control */
-  Pitch_Pid.fSetpoint = ((float)i_elevator / 500.0f);    /* setpoint for pitch */
-  Pitch_Pid.fInput = f_pitch;
-  f_output = PID_Compute(&Pitch_Pid);                    /* pitch PID */
-  i_elevator = SERVO_NEUTRAL + (int16_t)f_output;
-
-  /* roll control */
-  Roll_Pid.fSetpoint = ((float)i_aileron / 500.0f);      /* setpoint for bank */
-  Roll_Pid.fInput = f_roll;
-  f_output = PID_Compute(&Roll_Pid);                     /* roll PID */
-  i_aileron = SERVO_NEUTRAL + (int16_t)f_output;
-}
-
-/*----------------------------------------------------------------------------
- *
- * @brief   control aircraft direction
- * @return  -
- * @remarks implements two nested PI(D) loops: outermost loop compensates the
- *          error between aircraft heading and bearing to next waypoint,
- *          innermost loop controls aircraft's roll.
+ *                                  +-----------------+
+ *                                  |                 |
+ *                          0.0 --->| input    output |---> f_nav_roll [rad]
+ *                                  |                 |
+ *                                  |       PID       |
+ *                                  |                 |
+ *   AHRS heading [rad] ---( - )--->| setpoint        |
+ *                           |      |                 |
+ *   bearing to wpt [rad] ---+      +-----------------+
  *
  *----------------------------------------------------------------------------*/
 __inline static void direction_control( void ) {
 
   /* compute direction error */
-  f_temp = f_heading - Nav_Bearing_Rad();
+  f_temp = f_ahrs_heading - Nav_Bearing_Rad();
 
   /* limit direction error between [-PI, PI] */
   if (f_temp < -PI) {
@@ -269,23 +277,35 @@ __inline static void direction_control( void ) {
   /* normalize direction error */
   f_temp = f_temp / PI;
 
-  /* direction control */
+  /* direction PID */
   Nav_Pid.fSetpoint = f_temp;
   Nav_Pid.fInput = 0.0f;
-  f_temp = PID_Compute(&Nav_Pid);                   /* direction PID is .. */
-
-  /* roll control */
-  Roll_Pid.fSetpoint = f_temp;                      /* .. roll setpoint */
-  Roll_Pid.fInput = f_roll;
-  f_output = PID_Compute(&Roll_Pid);                /* roll PID */
-  i_aileron = SERVO_NEUTRAL + (int16_t)f_output;
+  f_nav_roll = PID_Compute(&Nav_Pid);
 }
 
 /*----------------------------------------------------------------------------
  *
- * @brief   altitude control
+ * @brief   control of aircraft altitude
  * @return  -
- * @remarks -
+ * @remarks altitude is controlled adjusting throttle and pitch.
+ *          Both are interpolated between min and max values when actual
+ *          altitude lies within desired altitude +/- height margins and
+ *          are set at min / max when actual altitude is above / below
+ *          desired altitude +/- height margins.
+ *
+ *          actual altitude           | throttle & pitch
+ *          --------------------------+-----------------
+ *                                    | min
+ *          desired altitude + margin | min
+ *                                    | interpolated
+ *          desired altitude          | interpolated
+ *                                    | interpolated
+ *          desired altitude - margin | max
+ *                                    | max
+ *
+ *          Input is the altitude error (in m) computed by navigation module,
+ *          outputs are saved in f_ctrl_throttle (in %), and f_nav_pitch
+ *          (in radians).
  *
  *----------------------------------------------------------------------------*/
 __inline static void altitude_control( void ) {
@@ -295,25 +315,90 @@ __inline static void altitude_control( void ) {
 
     /* interpolate throttle and pitch */
     if (f_temp > f_height_margin) {             /* we're too high */
-        f_throttle = f_throttle_min;            /* minimum throttle */
-        f_temp = PITCHATMINTHROTTLE;
+        f_ctrl_throttle = f_throttle_min;       /* minimum throttle */
+        f_nav_pitch = PITCHATMINTHROTTLE;
     } else if (f_temp < -f_height_margin) {     /* we're too low */
-        f_throttle = f_throttle_max;            /* max throttle */
-        f_temp = PITCHATMAXTHROTTLE;
+        f_ctrl_throttle = f_throttle_max;       /* max throttle */
+        f_nav_pitch = PITCHATMAXTHROTTLE;
     } else {                                    /* interpolate */
         f_temp = (f_temp - f_height_margin) / (2.0f * f_height_margin);
-        f_throttle = f_temp * (f_throttle_min - f_throttle_max) + f_throttle_min;
-        f_temp = f_temp * (PITCHATMINTHROTTLE - PITCHATMAXTHROTTLE) + PITCHATMINTHROTTLE;
+        f_ctrl_throttle = f_temp * (f_throttle_min - f_throttle_max) + f_throttle_min;
+        f_nav_pitch = f_temp * (PITCHATMINTHROTTLE - PITCHATMAXTHROTTLE) + PITCHATMINTHROTTLE;
+    }
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * @brief   control of aircraft pitch
+ * @return  -
+ * @remarks control implemented as a PI(D) loop.
+ *          Input is aircraft pitch computed by AHRS.
+ *          Setpoint is either navigation pitch or RC elevator control
+ *          Navigation pitch is used in NAV mode to maintain altitude.
+ *          RC elevator control is used in STAB mode, converted to desired
+ *          pitch and limited between -45°, +45°.
+ *
+ *                                      +-----------------+
+ *                                      |                 |
+ *   AHRS pitch [rad] ----------------->| input    output |---> f_ctrl_elevator
+ *                             +--\     |                 |
+ *   RC pitch command ---------|   \    |       PID       |
+ *     (mode = MAN)            |    \   |                 |
+ *                             |     |->| setpoint        |
+ *                             |    /   |                 |
+ *   navigation pitch [rad] ---|   /    +-----------------+
+ *     (mode = NAV)            +--/
+ *
+ *----------------------------------------------------------------------------*/
+__inline static void pitch_control( void ) {
+
+  /* determine setpoint for pitch PID */
+  if (uc_current_mode == MODE_NAV) {    /* NAV */
+    Pitch_Pid.fSetpoint = f_nav_pitch;
+  } else {                              /* STAB, MAN, FPV, CAMERA */
+    Pitch_Pid.fSetpoint = ((float)(i_elevator - SERVO_NEUTRAL) / ELEV_TO_PITCH);
     }
 
-    /* set throttle */
-    i_throttle = SERVO_NEUTRAL + (int16_t)(500.0f * f_throttle);
+  /* pitch PID */
+  Pitch_Pid.fInput = f_ahrs_pitch;
+  f_ctrl_elevator = PID_Compute(&Pitch_Pid);
+}
 
-    /* pitch control */
-    Pitch_Pid.fInput = f_pitch;
-    Pitch_Pid.fSetpoint = f_temp;
-    f_output = PID_Compute(&Pitch_Pid);             /* pitch PID */
-    i_elevator = SERVO_NEUTRAL + (int16_t)f_output;
+/*----------------------------------------------------------------------------
+ *
+ * @brief   control of aircraft roll
+ * @return  -
+ * @remarks control implemented as a PI(D) loop.
+ *          Input is aircraft roll computed by AHRS.
+ *          Setpoint is either navigation roll or RC aileron control.
+ *          Navigation roll is used in NAV mode to steer toward next waypoint.
+ *          RC aileron control is used in STAB mode, converted to desired bank
+ *          and limited between -60°, +60°.
+ *
+ *                                      +-----------------+
+ *                                      |                 |
+ *   AHRS roll [rad] ------------------>| input    output |---> f_ctrl_aileron
+ *                             +--\     |                 |
+ *   RC roll command ----------|   \    |       PID       |
+ *     (mode = MAN)            |    \   |                 |
+ *                             |     |->| setpoint        |
+ *                             |    /   |                 |
+ *   navigation roll [rad] ----|   /    +-----------------+
+ *     (mode = NAV)            +--/
+ *
+ *----------------------------------------------------------------------------*/
+__inline static void roll_control( void ) {
+
+  /* determine setpoint for roll PID */
+  if (uc_current_mode == MODE_NAV) {    /* NAV */
+    Roll_Pid.fSetpoint = f_nav_roll;
+  } else {                              /* STAB, MAN, FPV, CAMERA */
+    Roll_Pid.fSetpoint = ((float)(i_aileron - SERVO_NEUTRAL) / AIL_TO_BANK);
+  }
+
+  /* roll PID */
+  Roll_Pid.fInput = f_ahrs_roll;
+  f_ctrl_aileron = PID_Compute(&Roll_Pid);
 }
 
 /*----------------------------------------------------------------------------
@@ -326,9 +411,9 @@ __inline static void altitude_control( void ) {
  *----------------------------------------------------------------------------*/
 __inline static void camera_control( void ) {
 
-  f_temp = -(f_pitch * 1800.0f) / PI;            /* current pitch (reversed) */
+  f_temp = -(f_ahrs_pitch * 1800.0f) / PI;               /* current pitch (reversed) */
   i_elevator = SERVO_NEUTRAL + (int16_t)f_temp;  /* show on elevator servo */
-  f_temp = -(f_roll * 1800.0f) / PI;             /* current bank (reversed) */
+  f_temp = -(f_ahrs_roll * 1800.0f) / PI;                /* current bank (reversed) */
   i_aileron = SERVO_NEUTRAL + (int16_t)f_temp;   /* show on aileron servo */
 }
 
