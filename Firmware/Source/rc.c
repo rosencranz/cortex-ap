@@ -2,8 +2,8 @@
  *
  * $HeadURL: $
  * $Revision: $
- * $Date:  $
- * $Author: $
+ * $Date: 01/11/2014 $
+ * $Author: Lorenzo Fraccaro $
  *
  * @brief Remote control PPM input
  *
