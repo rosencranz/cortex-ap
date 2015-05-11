@@ -9,7 +9,7 @@
  *
  * @file
  *
- * Change:
+ * Change: corrected accelerometer gains
  *
  *============================================================================*/
 
@@ -40,12 +40,12 @@
  * Accelerometer scale factor (source: ADXL345 datasheet)
  *  Full scale | Factor [g/digit] | Factor [mss/digit]
  * ------------+------------------+------------------------
- *     +/-2 g  |      0.0039      |      0.03822
- *     +/-4 g  |      0.0078      |      0.7644
- *     +/-8 g  |      0.0156      |      0.15288
- *    +/-16 g  |      0.0312      |      0.30576
+ *     +/-2 g  |      0.0039      |      0.03828125
+ *     +/-4 g  |      0.0078      |      0.0765625
+ *     +/-8 g  |      0.0156      |      0.153125
+ *    +/-16 g  |      0.0312      |      0.30625
 */
-#define ACCEL_GAIN      0.15288f         /* full scale = 8g	 */
+#define ACCEL_GAIN      0.153125f         /* full scale = 8g	 */
 
 /*
  * Gyroscope scale factor (source: L3G4200 datasheet)
