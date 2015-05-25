@@ -78,7 +78,7 @@
  *
  * \endcode
  *
- * Change
+ * Change updated remarks
  *
  *=============================================================================+*/
 
@@ -336,7 +336,8 @@ __inline static void accel_adjust(void)
  *
  * Compensate for roll / pitch / yaw drift
  * @return  -
- * @remarks La correzione di rollio e beccheggio e' data da: \code
+ * @remarks La correzione di rollio e beccheggio e' data da: 
+ * \code
  *                        | Rzx |
  *                        |     |
  * RollPitch correction = | Rzy | /\ g
@@ -345,19 +346,23 @@ __inline static void accel_adjust(void)
  * \endcode
  *
  * La correzione di imbardata e' calcolata prima nel sistema di riferimento di
- * terra: \code
+ * terra: 
+ * \code
  * Yaw correction (ground) = xb  /\ COG
  *                             p
- * \endcode dove \code
+ * \endcode 
+ * dove 
+ * \code
  *
  * xb
  *   p
  *
- * \endcode e' la proiezione dell'asse X dell'aereo sul piano X Y del sistema
+ * \endcode 
+ * e' la proiezione dell'asse X dell'aeromobile sul piano X Y del sistema
  * di riferimento di terra, e \code COG \endcode (Course Over Ground) e' la
- * proiezione della prua dell'aereo sul piano X Y del sistema di riferimento
- * di terra. La correzione di imbardata viene trasformata nel sistema di
- * riferimento dell'aereo:
+ * proiezione della rotta sul piano X Y del sistema di riferimento di terra. 
+ * La correzione di imbardata viene trasformata nel sistema di riferimento 
+ * dell'aeromobile:
  * \code
  *                                                       | Rzx |
  *                                                       |     |
