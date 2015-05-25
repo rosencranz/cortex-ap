@@ -9,7 +9,7 @@
  *
  * @file
  *
- * Change:
+ * Change: decoded date from GPRMC sentence
  *
  *============================================================================*/
 
@@ -22,6 +22,7 @@
 /*--------------------------------- Definitions ------------------------------*/
 
 #define LINE_LENGTH 16      /* length of lines read */
+#define DATE_LENGTH 7       /* length of date string */
 
 /*----------------------------------- Macros ---------------------------------*/
 
@@ -53,6 +54,7 @@ static float f_curr_lat = 0.0f;             /* current latitude */
 static float f_curr_lon = 0.0f;             /* current longitude */
 
 static uint8_t sz_line[LINE_LENGTH];        /* input line */
+static uint8_t sz_date[LINE_LENGTH];        /* input line */
 
 static uint32_t ul_temp_coord = 0UL;        /* temporary for coordinate parser */
 static uint16_t ui_gps_cog = 0;             /* aircraft course over ground [°] */
@@ -61,6 +63,7 @@ static uint16_t ui_gps_alt = 0;             /* altitude [m] */
 static uint8_t uc_gps_status = GPS_NOFIX;   /* status of GPS */
 static uint8_t uc_commas = 11;              /* counter of commas in NMEA sentence */
 static uint8_t prefix_index = 0;
+static uint8_t date_index = 0;
 
 static ENUM_NMEA_TYPE e_nmea_type;
 
@@ -248,12 +251,13 @@ void Parse_GPS( void ) {
 
         case 9:
             switch (e_nmea_type) {
-                case NMEA_GPRMC:                /* end of GPRMC sentence */
-                    if (uc_gps_status == GPS_FIX) {
-                        ui_gps_cog /= 10;
-                        f_curr_lat = f_temp_lat;
-                        f_curr_lon = f_temp_lon;
-                        uc_commas = 11;
+                case NMEA_GPRMC:                /* get date */
+                    if (c == ',') {
+                      date_index = 0;
+                    } else if (date_index < 6) {
+                      sz_date[date_index++] = c;  /* read date */
+                    } else {
+                      sz_date[date_index] = 0;    /* terminate date */
                     }
                     break;
 
@@ -275,9 +279,23 @@ void Parse_GPS( void ) {
             break;
 
         case 10:
-            if (e_nmea_type == NMEA_GPGGA) {    /* end of GPGGA sentence */
-                ui_gps_alt /= 10;
-                uc_commas = 11;
+            if (uc_gps_status == GPS_FIX) {
+               switch (e_nmea_type) {
+                  case NMEA_GPRMC:                /* end of GPRMC sentence */
+                      ui_gps_cog /= 10;
+                      f_curr_lat = f_temp_lat;
+                      f_curr_lon = f_temp_lon;
+                      uc_commas = 11;
+                      break;
+
+                  case NMEA_GPGGA:                /* end of GPGGA sentence */
+                      ui_gps_alt /= 10;
+                      uc_commas = 11;
+                      break;
+
+                  default:                        /* error */
+                    break;
+               }
             }
             break;
 
