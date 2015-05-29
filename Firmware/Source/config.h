@@ -9,7 +9,7 @@
  *
  * @file
  *
- * Change: corrected accelerometer gains
+ * Change: gravity and accelerometer gain set for ADXL345 full resolution 
  *
  *============================================================================*/
 
@@ -27,32 +27,34 @@
 /*
  * Accelerometer sensitivity (source: ADXL345 datasheet)
  * Equivalent to 1 g in the raw data from accelerometer
- *  Full scale | Sensitivity [LSB/g]
+ *     Scale   | Sensitivity [LSB/g]
  * ------------+----------------------
- *     +/-2 g  |       256
- *     +/-4 g  |       128
- *     +/-8 g  |        64
+ *    +/- 2 g  |       256
+ *    +/- 4 g  |       128
+ *    +/- 8 g  |        64
  *    +/-16 g  |        32
+ *   full res. |       256
  */
-#define GRAVITY         64              /* full scale = 8g */
+#define GRAVITY        256              /* Full resolution */
 
 /*
  * Accelerometer scale factor (source: ADXL345 datasheet)
- *  Full scale | Factor [g/digit] | Factor [mss/digit]
+ *     Scale   | Factor [g/digit] | Factor [mss/digit]
  * ------------+------------------+------------------------
- *     +/-2 g  |      0.0039      |      0.03828125
- *     +/-4 g  |      0.0078      |      0.0765625
- *     +/-8 g  |      0.0156      |      0.153125
- *    +/-16 g  |      0.0312      |      0.30625
+ *    +/- 2 g  |      0.0039      |      0.03822
+ *    +/- 4 g  |      0.0078      |      0.07644
+ *    +/- 8 g  |      0.0156      |      0.15288
+ *    +/-16 g  |      0.0312      |      0.30576
+ *   full res. |      0.0312      |      0.30576
 */
-#define ACCEL_GAIN      0.153125f         /* full scale = 8g	 */
+#define ACCEL_GAIN      0.30576f        /* Full resolution */
 
 /*
  * Gyroscope scale factor (source: L3G4200 datasheet)
- *  Full scale | Factor [dps/digit] | Factor [rps/digit]
+ *     Scale   | Factor [dps/digit] | Factor [rps/digit]
  * ------------+--------------------+----------------------
- *  +/-250 dps |       0.00875      |      0.000152716
- *  +/-500 dps |       0.01750      |      0.000366519
+ * +/- 250 dps |       0.00875      |      0.000152716
+ * +/- 500 dps |       0.01750      |      0.000366519
  * +/-2000 dps |       0.07000      |      0.001221730
  */
 #define GYRO_GAIN       0.001221730f    /* full scale = 2000 dps */
