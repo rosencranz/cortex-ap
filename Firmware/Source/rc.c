@@ -29,7 +29,7 @@
  *  Added counter of channel pulses with correct pulse length.
  *  Counter is copied into a module variable for signal strength indication.
  *
- *  Change:
+ *  Change: corrected detection of "mode" switch position
  *
  *
  *============================================================================*/
@@ -51,10 +51,8 @@
 #define PPM_PERIOD          65535   /* capture timer period */
 #define PRESCALER           23      /* capture timer prescaler */
 
-#define MANUAL_THRESHOLD_L  1100    /* lower threshold for MANUAL mode */
-#define STAB_THRESHOLD_L    1400    /* lower threshold for STABILIZED mode */
-#define STAB_THRESHOLD_U    1600    /* upper threshold for STABILIZED mode */
-#define NAV_THRESHOLD_U     1900    /* upper threshold for NAVIGATION mode */
+#define LOWER_THRESHOLD     1300    /* lower threshold */
+#define UPPER_THRESHOLD     1600    /* upper threshold */
 #define NEUTRAL_THRESHOLD_L 1450    /* lower threshold for neutral position */
 #define NEUTRAL_THRESHOLD_U 1550    /* upper threshold for neutral position */
 
@@ -226,15 +224,12 @@ uint8_t Get_RC_Mode(void)
 
     if (c_signal_level == 0) {
         return MODE_RTL;
-    } else if (ui_mode < MANUAL_THRESHOLD_L) {  /* mode switch in manual */
+    } else if (ui_mode <= LOWER_THRESHOLD) {    /* mode switch in manual */
         return MODE_MANUAL;
-    } else if ((ui_mode > STAB_THRESHOLD_L) &&  /* mode switch in stabilized */
-               (ui_mode < STAB_THRESHOLD_U)) {
+    } else if ((ui_mode <= UPPER_THRESHOLD)) {  /* mode switch in stabilized */
         return MODE_STAB;
-    } else if (ui_mode > NAV_THRESHOLD_U) {     /* mode switch in navigation */
+    } else {                                    /* mode switch in navigation */
         return MODE_NAV;
-    } else {
-        return MODE_UNDEFINED;
     }
 }
 
