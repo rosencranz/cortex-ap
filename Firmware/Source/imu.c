@@ -1,18 +1,18 @@
-/*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-*/
+/**===========================================================================+
+ *
+ * $HeadURL: $
+ * $Revision: $
+ * $Date: 01/11/2014 $
+ * $Author: Lorenzo Fraccaro $
+ *
+ * @brief imu driver
+ *
+ * @file
+ *
+ *  Change: ADXL345 set to fullscale range, added sensor saturation detect
+ *
+ *
+ *============================================================================*/
 
 #include "ch.h"
 #include "hal.h"
@@ -23,7 +23,10 @@
 #include "l3g4200d.h"
 
 /* autoincrement bit */
-#define AUTO_INCREMENT_BIT      (1 << 7)
+#define AUTO_INCREMENT_BIT  (1 << 7)
+
+#define MAX_ACCEL           500  // 7500
+#define MAX_ROTATION        5000 // 25000
 
 /* I2C1 */
 static const I2CConfig i2cfg1 = {
@@ -33,6 +36,7 @@ static const I2CConfig i2cfg1 = {
 };
 
 static i2cflags_t errors = 0;
+static uint8_t saturation = 0;
 
 /* buffers */
 static uint8_t imu_rx_data[IMU_RX_DEPTH];
@@ -106,7 +110,7 @@ bool Init_IMU ( void ) {
 
   /* set full scale range */
   imu_tx_data[0] = DATA_FORMAT;   /* DATA_FORMAT register address */
-  imu_tx_data[1] = RANGE_8G;      /* 8 g */
+  imu_tx_data[1] = ADXL_FULL_RES | RANGE_16G;   /* full resolution, 16 g */
 
   /* sending */
   i2cAcquireBus(&I2CD1);
@@ -178,15 +182,20 @@ int16_t * Request_IMU_Data( void ) {
 
   uint8_t j;
   int16_t * p_sensor_data;
-
   msg_t status = RDY_OK;
   systime_t tmo = MS2ST(4);
 
   /*-------------------------------- ADXL345 --------------------------------*/
 
-  imu_tx_data[0] = DATAX0 | AUTO_INCREMENT_BIT; /* register address */
+  imu_tx_data[0] = DATAX0 | AUTO_INCREMENT_BIT;     /* register address */
   i2cAcquireBus(&I2CD1);
-  status = i2cMasterTransmitTimeout(&I2CD1, ADXL345_ADDR, imu_tx_data, 1, imu_rx_data, 6, tmo);
+  status = i2cMasterTransmitTimeout(&I2CD1,         /* I2C driver 1 */
+                                    ADXL345_ADDR,   /* I2C address of sensor */
+                                    imu_tx_data,    /* pointer to register buffer */
+                                    1,              /* bytes to transmit */
+                                    imu_rx_data,    /* pointer to data buffer */
+                                    6,              /* bytes to read */
+                                    tmo);           /* timeout */
   i2cReleaseBus(&I2CD1);
   if (status != RDY_OK) {
     errors = i2cGetErrors(&I2CD1);
@@ -194,25 +203,62 @@ int16_t * Request_IMU_Data( void ) {
 
   /*------------------------------- L3G4200D -------------------------------*/
 
-  imu_tx_data[0] = OUT_X_L | AUTO_INCREMENT_BIT; /* register address */
+  imu_tx_data[0] = OUT_X_L | AUTO_INCREMENT_BIT;    /* register address */
   i2cAcquireBus(&I2CD1);
-  status = i2cMasterTransmitTimeout(&I2CD1, L3G4200_ADDR, imu_tx_data, 1, &imu_rx_data[6], 6, tmo);
+  status = i2cMasterTransmitTimeout(&I2CD1,         /* I2C driver 1 */              
+                                    L3G4200_ADDR,   /* I2C address of sensor */     
+                                    imu_tx_data,    /* pointer to register buffer */
+                                    1,              /* bytes to transmit */                           
+                                    &imu_rx_data[6],/* pointer to data buffer */     
+                                    6,              /* bytes to read */             
+                                    tmo);           /* timeout */                   
   i2cReleaseBus(&I2CD1);
   if (status != RDY_OK) {
     errors = i2cGetErrors(&I2CD1);
   }
 
-  /* Offset and sign correction */
+  /* Check saturation, add offset, correct sign */
   p_sensor_data = (int16_t *)imu_rx_data;
-  for (j = 0; j < 6; j++) {
-    *p_sensor_data -= imu_offset[j];      /* strip offset */
-    *p_sensor_data *= imu_sign[j];        /* correct sign */
-    if (j == 2) {                         /* z acceleration */
-      *p_sensor_data += (int16_t)GRAVITY; /* add gravity */
+  saturation = 0;
+  for (j = 0; j < 3; j++) {                     /* ADXL345 */
+    *p_sensor_data -= imu_offset[j];            /* strip offset */
+    *p_sensor_data *= imu_sign[j];              /* correct sign */
+    if (j == 2) {                               /* z acceleration */
+      *p_sensor_data += (int16_t)GRAVITY;       /* add gravity */
+    }
+    if ((*p_sensor_data < -MAX_ACCEL) ||        /* check saturation */
+        (*p_sensor_data >  MAX_ACCEL)) {
+       saturation |= ACCEL_SATURATED;
+    } else {
+       saturation &= ~ACCEL_SATURATED;
+    }
+
+    p_sensor_data++;
+  }
+  for (j = 3; j < 6; j++) {                     /* L3G4200D */
+    *p_sensor_data -= imu_offset[j];            /* strip offset */
+    *p_sensor_data *= imu_sign[j];              /* correct sign */
+    if ((*p_sensor_data < -MAX_ROTATION) ||     /* check saturation */
+        (*p_sensor_data >  MAX_ROTATION)) {
+      saturation |= GYRO_SATURATED;
+    } else {
+      saturation &= ~GYRO_SATURATED;
     }
     p_sensor_data++;
   }
+
   return (int16_t *)imu_rx_data;
 }
 
+/*----------------------------------------------------------------------------
+ *
+ * @brief   Read saturation status 
+ * @return  sensor saturation status
+ * @param   -
+ * @remarks -
+ *
+ *---------------------------------------------------------------------------*/
 
+uint8_t Get_IMU_Saturation(void) {
+    return saturation;
+}
