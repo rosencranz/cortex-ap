@@ -24,11 +24,10 @@
  * @todo
  * replace SERVO_NEUTRAL with RC command center position value
  *
- * Change: removed function stabilize()
- *         removed pitch control from function altitude_control()
- *         added static functions for pitch control and roll control
- *         call to control functions moved outside switch(mode)
- *         renamed several variables, added remarks in function headers
+ * Change: camera control function called always
+ *         throttle/rudder servos controlled by stabilization PIDs in NAV mode
+ *         throttle/rudder servos controlled by camera in STAB mode
+ *         renamed initialization function
  *
  *============================================================================*/
 
@@ -80,13 +79,16 @@
 /*----------------------------------- Locals ---------------------------------*/
 
 static uint8_t uc_current_mode;
-static int16_t i_aileron;                           /* aileron servo position */
-static int16_t i_elevator;                          /* elevator servo position */
-static int16_t i_throttle;                          /* throttle servo position */
-static xPID Roll_Pid;                               /* roll PID */
-static xPID Pitch_Pid;                              /* pitch PID */
-static xPID Nav_Pid;                                /* navigation PID */
-static float f_temp;                                /* */
+static int16_t i_aileron;                            /* aileron servo position */
+static int16_t i_elevator;                           /* elevator servo position */
+static int16_t i_throttle;                           /* throttle servo position */
+static int16_t i_rudder;                             /* rudder servo position */
+static xPID Roll_Pid;                                /* roll PID */
+static xPID Pitch_Pid;                               /* pitch PID */
+static xPID Nav_Pid;                                 /* navigation PID */
+static float f_temp;                                 /* */
+static float f_camera_slant;                         /* */
+static float f_camera_tilt;                          /* */
 static float f_ctrl_elevator;                        /* */
 static float f_ctrl_aileron;                         /* */
 static float f_ctrl_throttle = MINIMUMTHROTTLE;      /* commanded throttle */
@@ -117,7 +119,7 @@ __inline static void camera_control( void );
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
-void Init_Control(void )
+void Control_Init(void )
 {
     Roll_Pid.fGain = 500.0f;            /* limit servo throw */
     Roll_Pid.fMin = -1.0f;              /* */
@@ -133,7 +135,7 @@ void Init_Control(void )
     Pitch_Pid.fKi = PITCH_KI;           /* */
     Pitch_Pid.fKd = PITCH_KD;           /* */
 
-    Nav_Pid.fGain = DEGTORAD(NAV_BANK);    /* limit bank angle during navigation */
+    Nav_Pid.fGain = DEGTORAD(NAV_BANK); /* limit bank angle during navigation */
     Nav_Pid.fMin = -1.0f;               /* */
     Nav_Pid.fMax = 1.0f;                /* */
     Nav_Pid.fKp = NAV_KP;               /* init gains with default values */
@@ -180,42 +182,45 @@ void Control ( void ) {
     f_ahrs_pitch = AHRS_Pitch_Rad( );
     f_ahrs_roll = AHRS_Roll_Rad( );
 
-    /* limit roll */
-    if (f_ahrs_roll < -f_max_roll) {
-        f_ahrs_roll = -f_max_roll;
-    } else if (f_ahrs_roll > f_max_roll) {
-        f_ahrs_roll = f_max_roll;
-    }
-
     /* read RC controls */
     i_aileron = Get_RC_Channel(AILERON_CHANNEL);
     i_elevator = Get_RC_Channel(ELEVATOR_CHANNEL);
     i_throttle = Get_RC_Channel(THROTTLE_CHANNEL);
-
-    /* read RC mode */
-    uc_current_mode = Get_RC_Mode();
+    i_rudder = Get_RC_Channel(RUDDER_CHANNEL);
 
     /* update controls */
     direction_control();
     altitude_control();
     pitch_control();
     roll_control();
+    camera_control();
 
+    /* read RC mode */
+    uc_current_mode = Get_RC_Mode();
     switch (uc_current_mode) {
 
-        case MODE_NAV:              /* NAVIGATION MODE */
-            i_throttle = SERVO_NEUTRAL + (int16_t)(500.0f * f_ctrl_throttle);
-
-        case MODE_STAB:             /* STABILIZED MODE */
+        /* NAVIGATION MODE */
+        /* same as stabilized mode, controls altitude too */
+        case MODE_NAV:
+//            i_throttle = SERVO_NEUTRAL + (int16_t)(500.0f * f_ctrl_throttle);
+            i_throttle = SERVO_NEUTRAL + (int16_t)f_camera_tilt;
+            i_rudder = SERVO_NEUTRAL + (int16_t)f_camera_slant;
             i_elevator = SERVO_NEUTRAL + (int16_t)f_ctrl_elevator;
             i_aileron = SERVO_NEUTRAL + (int16_t)f_ctrl_aileron;
             break;
 
-        case MODE_FPV:              /* FPV MODE */
-/*            camera_control();*/
+        /* STABILIZED MODE */
+        /* keeps aircraft attitude, as requested by RC commands */
+        case MODE_STAB:
+            i_throttle = SERVO_NEUTRAL + (int16_t)f_ctrl_elevator;
+            i_rudder = SERVO_NEUTRAL + (int16_t)f_ctrl_aileron;
+            i_elevator = SERVO_NEUTRAL + (int16_t)f_ctrl_elevator;
+            i_aileron = SERVO_NEUTRAL + (int16_t)f_ctrl_aileron;
             break;
 
-        case MODE_MANUAL:           /* MANUAL MODE */
+        /* MANUAL MODE */
+        /* servo commands = RC commands, PIDs are reset */
+        case MODE_MANUAL:
             /* state entry transition */
             if (uc_old_mode != MODE_MANUAL) {
                 /* reset PID controllers */
@@ -223,6 +228,8 @@ void Control ( void ) {
                 PID_Init(&Pitch_Pid);
                 PID_Init(&Nav_Pid);
             }
+            i_throttle = SERVO_NEUTRAL;
+            i_rudder = SERVO_NEUTRAL;
             break;
 
         case MODE_RTL:
@@ -232,10 +239,11 @@ void Control ( void ) {
 
     uc_old_mode = uc_current_mode;
 
-    /* update controls */
+    /* update servos */
     Set_Servo(SERVO_AILERON, i_aileron);
     Set_Servo(SERVO_ELEVATOR, i_elevator);
     Set_Servo(SERVO_THROTTLE, i_throttle);
+    Set_Servo(SERVO_RUDDER, i_rudder);
 }
 
 /*----------------------------------------------------------------------------
@@ -287,7 +295,7 @@ __inline static void direction_control( void ) {
  *
  * @brief   control of aircraft altitude
  * @return  -
- * @remarks altitude is controlled adjusting throttle and pitch.
+ * @remarks altitude is controlled by adjusting throttle and pitch.
  *          Both are interpolated between min and max values when actual
  *          altitude lies within desired altitude +/- height margins and
  *          are set at min / max when actual altitude is above / below
@@ -333,7 +341,7 @@ __inline static void altitude_control( void ) {
  * @return  -
  * @remarks control implemented as a PI(D) loop.
  *          Input is aircraft pitch computed by AHRS.
- *          Setpoint is either navigation pitch or RC elevator control
+ *          Setpoint is either navigation pitch or RC elevator control.
  *          Navigation pitch is used in NAV mode to maintain altitude.
  *          RC elevator control is used in STAB mode, converted to desired
  *          pitch and limited between -45°, +45°.
@@ -357,7 +365,7 @@ __inline static void pitch_control( void ) {
     Pitch_Pid.fSetpoint = f_nav_pitch;
   } else {                              /* STAB, MAN, FPV, CAMERA */
     Pitch_Pid.fSetpoint = ((float)(i_elevator - SERVO_NEUTRAL) / ELEV_TO_PITCH);
-    }
+  }
 
   /* pitch PID */
   Pitch_Pid.fInput = f_ahrs_pitch;
@@ -405,16 +413,14 @@ __inline static void roll_control( void ) {
  *
  * @brief   camera control
  * @return  -
- * @remarks roll and pitch angles are simply output to aileron servo and
- *          elevator servo respectively.
+ * @remarks roll and pitch angles determined by AHRS are scaled and copied to 
+ *          slant and tilt respectively.
  *
  *----------------------------------------------------------------------------*/
 __inline static void camera_control( void ) {
 
-  f_temp = -(f_ahrs_pitch * 1800.0f) / PI;               /* current pitch (reversed) */
-  i_elevator = SERVO_NEUTRAL + (int16_t)f_temp;  /* show on elevator servo */
-  f_temp = -(f_ahrs_roll * 1800.0f) / PI;                /* current bank (reversed) */
-  i_aileron = SERVO_NEUTRAL + (int16_t)f_temp;   /* show on aileron servo */
+  f_camera_tilt = (f_ahrs_pitch * 1800.0f) / PI;   /* current pitch */
+  f_camera_slant = (f_ahrs_roll * 1800.0f) / PI;   /* current bank */
 }
 
 /**
