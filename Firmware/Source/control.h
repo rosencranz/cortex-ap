@@ -29,5 +29,5 @@
 
 /*--------------------------------- Prototypes -------------------------------*/
 
-void Init_Control(void);
+void Control_Init(void);
 void Control(void);
