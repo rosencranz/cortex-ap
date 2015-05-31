@@ -230,7 +230,7 @@ __inline static void accel_adjust(void);
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
-void Init_DCM ( void ) {
+void DCM_Init ( void ) {
 
   /* Semaphore */
   chSemInit(&sem_dcm, 1);

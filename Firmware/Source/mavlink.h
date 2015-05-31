@@ -39,7 +39,7 @@ typedef enum {
 
 /*---------------------------------- Interface -------------------------------*/
 
-void Init_Telemetry ( void );
+void Telemetry_Init ( void );
 void Mavlink_Receive ( void );
 void Mavlink_Stream_Send ( void );
 void Mavlink_Queued_Send ( void );

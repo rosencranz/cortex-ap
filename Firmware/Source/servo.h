@@ -42,6 +42,6 @@ typedef enum {
 
 /*--------------------------------- Interface --------------------------------*/
 
-void Init_Servo( void );
+void Servo_Init( void );
 void Set_Servo(SERVO_TYPE servo, int16_t position);
 int16_t Get_Servo(SERVO_TYPE servo);

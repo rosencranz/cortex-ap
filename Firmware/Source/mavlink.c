@@ -638,7 +638,7 @@ bool Mavlink_Stream_Trigger( uint8_t stream );
  * @remarks -
  *
  *---------------------------------------------------------------------------*/
-void Init_Telemetry( void ) {
+void Telemetry_Init( void ) {
 
  /*
   * Activates the Serial driver 1

@@ -58,7 +58,7 @@ static volatile float f_temp;
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
-static void Init_SD ( void ) {
+static void SD_Init ( void ) {
 
   FRESULT res;
 
@@ -184,7 +184,7 @@ static msg_t Nav_Thread(void *arg) {
 
      flags = chEvtGetAndClearFlags(&elGPSdata);
      if (flags & CHN_INPUT_AVAILABLE) {
-        Parse_GPS();
+        GPS_Parse();
      }
      Navigation();
 
@@ -259,15 +259,15 @@ int main(void) {
   chSysInit();
 
   chThdSleepMilliseconds(200);
-  Init_Servo();
-  Init_IMU();
-  Init_Baro();
-  Init_RC();
-  Init_GPS();
-  Init_DCM();
-  Init_SD();
-  Init_Control();
-  Init_Telemetry();
+  Servo_Init();
+  IMU_Init();
+  Baro_Init();
+  RC_Init();
+  GPS_Init();
+  DCM_Init();
+  SD_Init();
+  Control_Init();
+  Telemetry_Init();
 
   /*
    * Create log thread.

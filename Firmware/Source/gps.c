@@ -83,7 +83,7 @@ static SerialConfig sdcfg = {
  * @remarks
  *
  *---------------------------------------------------------------------------*/
-void Init_GPS ( void ) {
+void GPS_Init ( void ) {
 
   /* Activates the Serial driver 2, PA2(TX) and PA3(RX) are routed to USART2. */
   palSetPadMode(GPIOA, 2, PAL_MODE_STM32_ALTERNATE_PUSHPULL);
@@ -169,7 +169,7 @@ static void parse_coord( float * f_coord, uint8_t c )
  *  hh        = Checksum
  *
  *---------------------------------------------------------------------------*/
-void Parse_GPS( void ) {
+void GPS_Parse( void ) {
 
   msg_t c;
 

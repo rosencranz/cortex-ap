@@ -31,8 +31,8 @@
 
 /*---------------------------------- Interface -------------------------------*/
 
-void Init_GPS ( void );
-void Parse_GPS ( void );
+void GPS_Init ( void );
+void GPS_Parse ( void );
 uint8_t Gps_Status ( void );
 uint16_t Gps_Speed_Kt ( void );
 uint16_t Gps_Alt_M ( void );

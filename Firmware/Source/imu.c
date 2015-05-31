@@ -62,7 +62,7 @@ static const int16_t imu_sign[6] = {
  * @remarks -
  *
  *---------------------------------------------------------------------------*/
-bool Init_IMU ( void ) {
+bool IMU_Init ( void ) {
 
   uint8_t i, j;
   int16_t * p_sensor_data;

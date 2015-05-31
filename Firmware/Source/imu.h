@@ -22,7 +22,7 @@
 #define ACCEL_SATURATED (1 << 0)
 #define GYRO_SATURATED  (1 << 1)
 
-bool Init_IMU(void);
+bool IMU_Init(void);
 int16_t * Request_IMU_Data( void );
 uint8_t Get_IMU_Saturation(void);
 

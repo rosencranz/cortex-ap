@@ -172,7 +172,7 @@ static void icuperiodcb ( ICUDriver *icup ) {
  * @remarks TIM2CLK = 24 MHz, Prescaler = 23, TIM2 counter clock = 1 MHz
  *
  *---------------------------------------------------------------------------*/
-void Init_RC(void) {
+void RC_Init(void) {
 
   c_pulse_count = 0;
   c_overflow_count = -1;

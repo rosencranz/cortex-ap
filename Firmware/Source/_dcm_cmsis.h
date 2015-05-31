@@ -27,7 +27,7 @@
 
 /*---------------------------------- Interface -------------------------------*/
 
-void Init_DCM( void );
+void DCM_Init( void );
 void Normalize( void );
 void CompensateDrift( void );
 void MatrixUpdate( const int16_t * sensor );

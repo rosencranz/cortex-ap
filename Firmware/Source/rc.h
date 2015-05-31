@@ -41,7 +41,7 @@
 
 /*--------------------------------- Prototypes -------------------------------*/
 
-void Init_RC ( void );
+void RC_Init ( void );
 int16_t Get_RC_Channel ( uint8_t ucChannel );
 uint8_t Get_RC_Mode ( void );
 uint8_t Get_RC_Signal ( void );

@@ -138,7 +138,7 @@ typedef struct  {
 
 /*---------------------------------- Interface -------------------------------*/
 
-void Init_Baro(void);
+void Baro_Init(void);
 void Baro_Handler(void);
 int16_t Get_Baro_Temperature(void);
 int32_t Get_Baro_Pressure(void);

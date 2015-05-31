@@ -84,7 +84,7 @@ static PWMConfig pwmcfg = {
  *          programs the pins as alternate functions.
  *
  *---------------------------------------------------------------------------*/
-void Init_Servo( void ) {
+void Servo_Init( void ) {
 
   pwmStart(&PWMD3, &pwmcfg);
   palSetGroupMode(GPIOA, PAL_PORT_BIT(GPIOA_SERVO1) | PAL_PORT_BIT(GPIOA_SERVO2),

@@ -58,7 +58,7 @@ static void compensate_pressure(void);
  * @remarks -
  *
  *--------------------------------------------------------------------------*/
-void Init_Baro(void)
+void Baro_Init(void)
 {
   msg_t status = RDY_OK;
   systime_t tmo = MS2ST(4);
