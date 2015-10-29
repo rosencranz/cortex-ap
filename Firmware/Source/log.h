@@ -9,7 +9,7 @@
  *
  * @file
  *
- * Change:
+ * Change: function Init_Log() renamed Log_Init() 
  *
  *============================================================================*/
 
@@ -29,7 +29,7 @@
 
 /*--------------------------------- Prototypes -------------------------------*/
 
-void Init_Log ( void );
+void Log_Init ( void );
 void Log_Write_Var ( uint8_t * data, uint8_t size );
 void Log_Write_Ch ( uint8_t ch );
 void Log_Write_Str ( uint8_t * psz_str, uint8_t uc_len );

@@ -9,7 +9,7 @@
  *
  * @file
  *
- * Change:
+ * Change: function Init_Log() renamed Log_Init() 
  *
  *============================================================================*/
 
@@ -55,7 +55,7 @@ static uint32_t ul_samples = 0;                 /* counter of samples written */
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
-void Init_Log ( void ) {
+void Log_Init ( void ) {
 
   uint8_t j;
   bool b_found = TRUE;
