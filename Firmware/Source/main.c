@@ -1,5 +1,18 @@
-/*
-*/
+/**===========================================================================+
+ *
+ * $HeadURL: $
+ * $Revision: $
+ * $Date: 01/11/2014 $
+ * $Author: Lorenzo Fraccaro $
+ *
+ * @brief main 
+ *
+ * @file
+ *
+ *  Change: sparse LED management replaced by Led_Handler() function
+ *          function Init_Log() renamed Log_Init()
+ *
+ *============================================================================*/
 
 #include <stdlib.h>
 
@@ -79,6 +92,25 @@ static void SD_Init ( void ) {
 
 /*----------------------------------------------------------------------------
  *
+ * @brief   Handle LEDs
+ * @return  -
+ * @remarks -
+ *
+ *----------------------------------------------------------------------------*/
+static void Led_Handler ( void ) {
+
+   if (Gps_Status() == GPS_FIX) {             /* satellite fix */
+      palTogglePad(IOPORT3, GPIOC_LED4);      /* toggle blue LED */
+   } else {                                   /* no fix */
+      palSetPad(IOPORT3, GPIOC_LED4);         /* turn on blue LED */
+   }
+ 
+   palTogglePad(IOPORT3, GPIOC_LED3);         /* always toggle red LED */
+
+}
+
+/*----------------------------------------------------------------------------
+ *
  * @brief   Log thread
  * @remarks -
  *
@@ -97,7 +129,7 @@ static msg_t Log_Thread(void *arg) {
   /*
    * initialize log file
    */
-  Init_Log();
+  Log_Init();
 
   while (TRUE) {
     chThdSleepMilliseconds(20);
@@ -151,11 +183,8 @@ static msg_t Baro_Thread(void *arg) {
   while (TRUE) {
     chThdSleepMilliseconds(300);
 
-    palSetPad(IOPORT3, GPIOC_LED3);
-
-	Baro_Handler();
-
-    palClearPad(IOPORT3, GPIOC_LED3);
+    Baro_Handler();
+    Led_Handler();
 
   }
   return 0;
@@ -171,6 +200,7 @@ static WORKING_AREA(wa_Nav_Thread, 320);
 static msg_t Nav_Thread(void *arg) {
   EventListener elGPSdata;
   flagsmask_t flags;
+  uint8_t counter;
   chRegSetThreadName("Nav_Thread");
   (void)arg;
 
@@ -180,15 +210,11 @@ static msg_t Nav_Thread(void *arg) {
   while (TRUE) {
      chEvtWaitOneTimeout(EVENT_MASK(1), MS2ST(500));
 
-     palSetPad(IOPORT3, GPIOC_LED4);
-
      flags = chEvtGetAndClearFlags(&elGPSdata);
      if (flags & CHN_INPUT_AVAILABLE) {
         GPS_Parse();
      }
      Navigation();
-
-     palClearPad(IOPORT3, GPIOC_LED4);
 
   }
   return 0;
