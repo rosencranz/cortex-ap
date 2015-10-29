@@ -24,10 +24,8 @@
  * @todo
  * replace SERVO_NEUTRAL with RC command center position value
  *
- * Change: camera control function called always
- *         throttle/rudder servos controlled by stabilization PIDs in NAV mode
- *         throttle/rudder servos controlled by camera in STAB mode
- *         renamed initialization function
+ * Change: added gear ratio constant for camera tilt
+ *         throttle/rudder servos temporarily used for camera control
  *
  *============================================================================*/
 
@@ -65,6 +63,9 @@
 #define ELEV_TO_PITCH   636.61f
 /* RC aileron command [-500,500] to desired bank [-60°,60°] conversion factor */
 #define AIL_TO_BANK     477.46f
+
+/* Camera tilt gear ratio */
+#define TILT_GEAR_RATIO 1.4f
 
 /*----------------------------------- Macros ---------------------------------*/
 
@@ -203,8 +204,6 @@ void Control ( void ) {
         /* same as stabilized mode, controls altitude too */
         case MODE_NAV:
 //            i_throttle = SERVO_NEUTRAL + (int16_t)(500.0f * f_ctrl_throttle);
-            i_throttle = SERVO_NEUTRAL + (int16_t)f_camera_tilt;
-            i_rudder = SERVO_NEUTRAL + (int16_t)f_camera_slant;
             i_elevator = SERVO_NEUTRAL + (int16_t)f_ctrl_elevator;
             i_aileron = SERVO_NEUTRAL + (int16_t)f_ctrl_aileron;
             break;
@@ -212,8 +211,6 @@ void Control ( void ) {
         /* STABILIZED MODE */
         /* keeps aircraft attitude, as requested by RC commands */
         case MODE_STAB:
-            i_throttle = SERVO_NEUTRAL + (int16_t)f_ctrl_elevator;
-            i_rudder = SERVO_NEUTRAL + (int16_t)f_ctrl_aileron;
             i_elevator = SERVO_NEUTRAL + (int16_t)f_ctrl_elevator;
             i_aileron = SERVO_NEUTRAL + (int16_t)f_ctrl_aileron;
             break;
@@ -228,14 +225,20 @@ void Control ( void ) {
                 PID_Init(&Pitch_Pid);
                 PID_Init(&Nav_Pid);
             }
-            i_throttle = SERVO_NEUTRAL;
-            i_rudder = SERVO_NEUTRAL;
             break;
 
         case MODE_RTL:
         default:
             break;
     }
+
+    /*************** BEGIN OF TEST CODE FOR CAMERA CONTROL ***************/
+    /*********** REMOVE TO RESTORE THROTTLE AND RUDDER CONTROL ***********/
+
+    i_throttle = SERVO_NEUTRAL + (int16_t)f_camera_tilt;
+    i_rudder = SERVO_NEUTRAL + (int16_t)f_camera_slant;
+
+    /**************** END OF TEST CODE FOR CAMERA CONTROL ****************/
 
     uc_old_mode = uc_current_mode;
 
@@ -419,8 +422,8 @@ __inline static void roll_control( void ) {
  *----------------------------------------------------------------------------*/
 __inline static void camera_control( void ) {
 
-  f_camera_tilt = (f_ahrs_pitch * 1800.0f) / PI;   /* current pitch */
-  f_camera_slant = (f_ahrs_roll * 1800.0f) / PI;   /* current bank */
+  f_camera_tilt = -(f_ahrs_pitch * 1800.0f) / (PI * TILT_GEAR_RATIO); /* current pitch */
+  f_camera_slant = -(f_ahrs_roll * 1800.0f) / PI;   									/* current roll */
 }
 
 /**
