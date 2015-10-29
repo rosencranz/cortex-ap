@@ -208,7 +208,7 @@ static msg_t Nav_Thread(void *arg) {
 
   chEvtRegisterMask((EventSource *)chnGetEventSource(&SD2), &elGPSdata, EVENT_MASK(1));
   while (TRUE) {
-     chEvtWaitOneTimeout(EVENT_MASK(1), MS2ST(500));
+     (void)chEvtWaitOneTimeout(EVENT_MASK(1), MS2ST(500));
 
      flags = chEvtGetAndClearFlags(&elGPSdata);
      if (flags & CHN_INPUT_AVAILABLE) {
@@ -263,7 +263,7 @@ static msg_t Telemetry_Thread(void *arg) {
 
 /*  global_data_reset_param_defaults(); */ /* Load default parameters as fallback */
 
-  while (1)  {
+  while (TRUE)  {
     chThdSleepMilliseconds(1);  /* Use any wait function, better not use sleep */
     Mavlink_Receive();          /* 1 KHz: process parameter request, if any */
     if (++ul_cycles == 20) {    /* 50 Hz: */
@@ -300,14 +300,14 @@ int main(void) {
    * Duration ??? ms
    * Period 20 ms
    */
-  chThdCreateStatic(wa_Log_Thread, sizeof(wa_Log_Thread), HIGHPRIO, Log_Thread, NULL);
+  (void)chThdCreateStatic(wa_Log_Thread, sizeof(wa_Log_Thread), HIGHPRIO, Log_Thread, NULL);
 
   /*
    * Create AHRS thread.
    * Duration 2.34 ms
    * Period 20 ms
    */
-  chThdCreateStatic(wa_AHRS_Thread, sizeof(wa_AHRS_Thread), HIGHPRIO, AHRS_Thread, NULL);
+  (void)chThdCreateStatic(wa_AHRS_Thread, sizeof(wa_AHRS_Thread), HIGHPRIO, AHRS_Thread, NULL);
 
   /*
    * Creates navigation thread.
@@ -315,21 +315,21 @@ int main(void) {
    * Period of incoming characters (~ 10 ms)
    * Timeout 500 ms
    */
-  chThdCreateStatic(wa_Nav_Thread, sizeof(wa_Nav_Thread), HIGHPRIO - 1, Nav_Thread, NULL);
+  (void)chThdCreateStatic(wa_Nav_Thread, sizeof(wa_Nav_Thread), HIGHPRIO - 1, Nav_Thread, NULL);
 
   /*
    * Creates telemetry thread.
    * Duration 0.150 ms - 7 ms
    * Period 20 ms
    */
-  chThdCreateStatic(wa_Telemetry_Thread, sizeof(wa_Telemetry_Thread), HIGHPRIO - 2, Telemetry_Thread, NULL);
+  (void)chThdCreateStatic(wa_Telemetry_Thread, sizeof(wa_Telemetry_Thread), HIGHPRIO - 2, Telemetry_Thread, NULL);
 
   /*
    * Creates barometer thread.
    * Duration 31.6 ms
    * Period 301 ms
    */
-  chThdCreateStatic(wa_Baro_Thread, sizeof(wa_Baro_Thread), HIGHPRIO - 3, Baro_Thread, NULL);
+  (void)chThdCreateStatic(wa_Baro_Thread, sizeof(wa_Baro_Thread), HIGHPRIO - 3, Baro_Thread, NULL);
 
   /*
    * RM schedulability test
