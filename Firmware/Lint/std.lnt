@@ -1,8 +1,13 @@
-//  Keil ARM compiler, -si4 -sp4, 
+// Changes: updated for Keil CARM compiler
+
+//  Keil CARM compiler, -si4 -sp4, lib-stl.lnt
 //  Standard lint options
 
-+v  
--i"D:\Work\cxap\trunk\Firmware\Lint"
-//au-misra2.lnt
-CO-RV.LNT
+//au-misra3.lnt
+co-rv.lnt
+lib-stl.lnt
 options.lnt  -si4 -sp4
+-iC:\Keil\ARM\INC\ARM
+-iC:\Keil\ARM\INC\ST\STM32F10x
+-iC:\Keil\ARM\RV31\INC
+
