@@ -1,6 +1,25 @@
+// Changes: added include directories
+// 
 // Please note -- this is a representative set of error suppression
 //                options.  Please adjust to suit your own policies
 //                See  manual (chapter LIVING WITH LINT)
 //                for further details.
 
--e502 -e713 -e737 -eau  // don't report on signed/unsigned mismatches
+-emacro(506, TRUE)
+
+-i..\Source
+-i..\board
+-i..\os\hal\include
+-i..\os\hal\platforms\STM32
+-i..\os\hal\platforms\STM32F1xx
+-i..\os\hal\platforms\STM32\GPIOv1
+-i..\os\kernel\include
+-i..\os\port\common\ARMCMx
+-i..\os\port\common\ARMCMx\CMSIS\include
+-i..\os\port\RVCT\ARMCMx
+-i..\os\port\RVCT\ARMCMx\STM32F1xx
+-i..\os\hal\platforms\STM32\I2Cv1
+-i..\os\hal\platforms\STM32\TIMv1
+-i..\os\hal\platforms\STM32\USARTv1
+-i..\os\hal\platforms\STM32\SPIv1
+-i..\fatfs\src
