@@ -4,6 +4,8 @@
   @verbatim
   @endverbatim
 
+     27/04/15 ******* PROGETTO ESPORTATO SU GITHUB! *******
+
 @par Sensori
 
 \todo
@@ -424,7 +426,7 @@
      - aumentata la frequenza del task attitude da 40 a 50 Hz
      - aggiustati i coefficienti dei PID per poterli modificare con Droidplanner
 
-     Risultato
+     Risultato:
      Effettuati diversi tentativi facendo ogni volta atterrare l'aereo, modificando 
      i parametri e rileggendoli per verifica. I parametri usati sono:
 
@@ -442,7 +444,7 @@
      In qualche caso oscilla a dx e sx e diventa instabile come nella prova 5.
      Durante una rilettura dei parametri, questi erano tornati ai valori di default.
 
-     Ipotesi
+     Ipotesi:
      - reset del micro.
        Questo confermerebbe l'ipotesi alla base dei crash delle prove 2 e 3.
 
@@ -453,8 +455,10 @@
      oscilla lentamente per qualche secondo smorzandosi fino a fermarsi.
      Il servo dell'elevatore ruota lentamente fino a fine corsa, a volte in un senso
      a volte nell'altro.
-     L'assetto visualizzato con Driodplanner è congruente: oscillazione attorno 
+     L'assetto visualizzato con Droidplanner è congruente: oscillazione attorno 
      all'asse X, lenta inclinazione a cabrare o a picchiare fino a + / - 90°.
+
+     Analisi:
      Il problema si verifica perchè il valore dei sensori non viene aggiornato 
      ma l'offset iniziale viene comunque sottratto. Un offset non nullo provoca 
      un veloce incremento del corrispondente valore del sensore, come succede in 
@@ -470,10 +474,11 @@
 
      14/11/13
 
+     Ipotesi:
      Il micro potrebbe resettarsi perchè il pin di reset è flottante.
+     I disturbi del motore durante il volo potrebebro causare il reset.
      Togliendo il pulsante di reset, il pin RST\ non è più collegato a massa dal
      condensatore da 100 nF (veniva sfruttato il collegamento interno del pulsante).
-     I disturbi del motore durante il volo potrebebro causare il reset.
 
      Collegato RST\ a massa con 100 nF e a 3.3 Volt con 10 K Ohm.
      Riportata a 40 Hz la frequenza del task attitude.
@@ -487,7 +492,7 @@
      - 128 bytes di stack per tutti i task, 
      - heap a 4 K bytes
 
-     Risultato
+     Risultato:
      La stabilizzazione non funziona ne' con i valori di default ne' modificando i
      valori dei PID (abbassato Kp rollio, aumentato Ki del rollio, azzerati Kp, Ki 
      del beccheggio).
@@ -503,6 +508,27 @@
      3. il valore di ACCEL_GAIN a 0.15288f non va bene e va riportato a 0.153125f.
      4. la lettura degli accelerometri è disturbata in volo dal motore
 
+     15/11/15 ------ Prova a banco stabilizzazione camera ------
+
+     Aggiunto al codice il controllo per la stabilizzazione della video camera:
+     rollio e beccheggio comandano direttamente le uscite "aileron" e "elevator".
+     La stabilizzazione non implementa PID, cambia solo il segno degli angoli.
+     Durante le prove a banco, rotazioni attorno all'asse di imbardata provocano
+     movimenti del servo "aileron".
+
+     Ipotesi:
+     Il valore di PITCHROLL_KP è troppo alto (0.1). Poichè l'asse Z dell'accelerometro 
+     non coincide con l'asse di imbardata, qualsiasi rotazione attorno a quest'ultimo
+     provoca una accelerazione che viene amplificata a causa del valore del coefficiente.
+     Questo problema potrebbe anche essere la causa delle oscillazioni riscontrate durante
+     le prove di stabilizzazione fatte nel Novembre 2013.
+
+     Soluzione:
+     Ridotto PITCHROLL_KP da 0.1 a 0.01.
+
+     Risultato:
+     Rotazioni attorno all'asse di imbardata non provocano più movimenti del servo
+     "aileron".
 
 @par PID
      
