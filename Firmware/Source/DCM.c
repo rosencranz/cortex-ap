@@ -70,15 +70,15 @@
  *
  * \code
  *
- *     element          meaning     UDB variable
+ *     element         meaning    UDB variable
  *
- *     f_gyro_vector[0]   roll rate   omegagyro[1]
- *     f_gyro_vector[1]   pitch rate  omegagyro[0]
- *     f_gyro_vector[2]   yaw rate    omegagyro[2]
+ * f_gyro_vector[0]   roll rate   omegagyro[1]
+ * f_gyro_vector[1]   pitch rate  omegagyro[0]
+ * f_gyro_vector[2]   yaw rate    omegagyro[2]
  *
  * \endcode
  *
- * Change updated remarks
+ * Change: reduced PITCHROLL_KP from 0.1 to 0.01
  *
  *=============================================================================+*/
 
@@ -94,7 +94,7 @@
 
 /* Initial P gain for roll/pitch compensation */
 /* Typical values 0.1f, 0.015f, 0.01f, 0.0013f */
-#define PITCHROLL_KP    0.1f
+#define PITCHROLL_KP    0.01f
 
 /* Initial I gain for roll/pitch compensation*/
 /* Typical values 0.000005f, 0.000002f */
