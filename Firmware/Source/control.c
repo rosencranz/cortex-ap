@@ -24,8 +24,7 @@
  * @todo
  * replace SERVO_NEUTRAL with RC command center position value
  *
- * Change: added gear ratio constant for camera tilt
- *         throttle/rudder servos temporarily used for camera control
+ * Change: increased gear ratio constant for camera tilt
  *
  *============================================================================*/
 
@@ -65,7 +64,7 @@
 #define AIL_TO_BANK     477.46f
 
 /* Camera tilt gear ratio */
-#define TILT_GEAR_RATIO 1.4f
+#define TILT_GEAR_RATIO 1.7f
 
 /*----------------------------------- Macros ---------------------------------*/
 
