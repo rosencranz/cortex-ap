@@ -448,7 +448,7 @@
      - reset del micro.
        Questo confermerebbe l'ipotesi alla base dei crash delle prove 2 e 3.
 
-     09/11/13
+     09/11/13 ------- Prova a banco --------
 
      Riprodotto il problema della prova 4 disabilitando la lettura dei giroscopi.
      Il servo degli alettoni gira bruscamente appena inserita la stabilizzazione, 
@@ -529,6 +529,22 @@
      Risultato:
      Rotazioni attorno all'asse di imbardata non provocano più movimenti del servo
      "aileron".
+
+     15/11/15 ------ Prova a banco stabilizzazione velivolo ------
+
+     Il servo "aileron" ruota lentamente in senso orario anche con scheda ferma.
+     Stesso comportamento anche aumentando PITCHROLL_KP a 0,2 e PITCHROLL_KI a 0,005.
+     L'assetto indicato dalla telemetria è orizzontale e non si muove.
+     In navigazione il servo "aileron" ruota velocemente in senso orario.
+
+     Ipotesi:
+     Errore nel codice dei PID che provoca una deriva, oppure valore di Ki troppo basso.
+
+     Soluzione:
+     TBD
+
+     Risultato:
+     TBD
 
 @par PID
      
