@@ -537,14 +537,16 @@
      L'assetto indicato dalla telemetria è orizzontale e non si muove.
      In navigazione il servo "aileron" ruota velocemente in senso orario.
 
-     Ipotesi:
-     Errore nel codice dei PID che provoca una deriva, oppure valore di Ki troppo basso.
+     Analisi:
+     Kp e Kp del PID di rollio sono controllati dai comandi 6 e 7 (slider).
+     Il valore di Kp è circa 1,0 Ki è circa 0,5.
+     La velocità di deriva del servo degli alettoni aumenta al crescere di Ki.
 
      Soluzione:
-     TBD
+     Azzerare il valore di Kp abbassando il relativo slider.
 
      Risultato:
-     TBD
+     Il servo degli alettoni è stabile.
 
 @par PID
      
