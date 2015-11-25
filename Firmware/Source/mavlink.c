@@ -1,13 +1,9 @@
 /**===========================================================================+
  *
- * $HeadURL: $
- * $Revision: $
- * $Date:  $
- * $Author: $
- *
+ * @Author rosenkranz
+ * @file mavlink.c
  * @brief tentative Mavlink protocol implementation
  *
- * @file
  * -------------------- Mavlink message structure --------------------
  * \code
  *  Byte        Name        Content              Value
@@ -99,9 +95,9 @@
  *                       RSSI                21   uint8_t
  *
  * MISSION_CLEAR_ALL     target_system        ?   uint8_t  System ID
- *                       target_component	  ?   uint8_t  Component ID
+ *                       target_component     ?   uint8_t  Component ID
  *
- * MISSION_REQUEST_LIST  target_system	      ?   uint8_t  System ID
+ * MISSION_REQUEST_LIST  target_system        ?   uint8_t  System ID
  *                       target_component     ?   uint8_t  Component ID
  *
  * MISSION_COUNT         target_system        ?   uint8_t  System ID
@@ -184,7 +180,7 @@
  * List of commands
  * https://pixhawk.ethz.ch/mavlink/
  *
- * Change:
+ * Change: removed tab characters
  *
  *
  *============================================================================*/
@@ -277,78 +273,78 @@
 
 /*lint -e753 -e749 -e751 */
 enum MAV_AUTOPILOT {
-	MAV_AUTOPILOT_GENERIC=0,      /* 0: Generic autopilot, full support for everything */
-	MAV_AUTOPILOT_PIXHAWK,        /* 1: PIXHAWK autopilot, http://pixhawk.ethz.ch */
-	MAV_AUTOPILOT_SLUGS,          /* 2: SLUGS autopilot, http://slugsuav.soe.ucsc.edu */
-	MAV_AUTOPILOT_ARDUPILOTMEGA,  /* 3: ArduPilotMega / ArduCopter, http://diydrones.com */
-	MAV_AUTOPILOT_OPENPILOT,      /* 4: OpenPilot, http://openpilot.org */
-	MAV_AUTOPILOT_GENERIC_WAYPOINTS_ONLY, /* 5: Generic autopilot only supporting simple waypoints */
-	MAV_AUTOPILOT_GENERIC_WAYPOINTS_AND_SIMPLE_NAVIGATION_ONLY, /* 6: Generic autopilot supporting waypoints and other simple navigation commands */
-	MAV_AUTOPILOT_GENERIC_MISSION_FULL, /* 7: Generic autopilot supporting the full mission command set */
-	MAV_AUTOPILOT_INVALID,        /* 8: No valid autopilot, e.g. a GCS or other MAVLink component */
-	MAV_AUTOPILOT_PPZ,            /* 9: PPZ UAV - http://nongnu.org/paparazzi */
-	MAV_AUTOPILOT_UDB,            /* 10: UAV Dev Board */
-	MAV_AUTOPILOT_FP,             /* 11: FlexiPilot */
-	MAV_AUTOPILOT_ENUM_END        /* 12: */
+     MAV_AUTOPILOT_GENERIC=0,      /* 0: Generic autopilot, full support for everything */
+     MAV_AUTOPILOT_PIXHAWK,        /* 1: PIXHAWK autopilot, http://pixhawk.ethz.ch */
+     MAV_AUTOPILOT_SLUGS,          /* 2: SLUGS autopilot, http://slugsuav.soe.ucsc.edu */
+     MAV_AUTOPILOT_ARDUPILOTMEGA,  /* 3: ArduPilotMega / ArduCopter, http://diydrones.com */
+     MAV_AUTOPILOT_OPENPILOT,      /* 4: OpenPilot, http://openpilot.org */
+     MAV_AUTOPILOT_GENERIC_WAYPOINTS_ONLY, /* 5: Generic autopilot only supporting simple waypoints */
+     MAV_AUTOPILOT_GENERIC_WAYPOINTS_AND_SIMPLE_NAVIGATION_ONLY, /* 6: Generic autopilot supporting waypoints and other simple navigation commands */
+     MAV_AUTOPILOT_GENERIC_MISSION_FULL, /* 7: Generic autopilot supporting the full mission command set */
+     MAV_AUTOPILOT_INVALID,        /* 8: No valid autopilot, e.g. a GCS or other MAVLink component */
+     MAV_AUTOPILOT_PPZ,            /* 9: PPZ UAV - http://nongnu.org/paparazzi */
+     MAV_AUTOPILOT_UDB,            /* 10: UAV Dev Board */
+     MAV_AUTOPILOT_FP,             /* 11: FlexiPilot */
+     MAV_AUTOPILOT_ENUM_END        /* 12: */
 };
 /*
  * type of vehicle
  */
 enum MAV_TYPE {
-	MAV_TYPE_GENERIC=0,             /* 0: Generic micro air vehicle. */
-	MAV_TYPE_FIXED_WING,            /* 1: Fixed wing aircraft. */
-	MAV_TYPE_QUADROTOR,             /* 2: Quadrotor */
-	MAV_TYPE_COAXIAL,               /* 3: Coaxial helicopter */
-	MAV_TYPE_HELICOPTER,            /* 4: Normal helicopter with tail rotor. */
-	MAV_TYPE_ANTENNA_TRACKER,       /* 5: Ground installation */
-	MAV_TYPE_GCS,                   /* 6: Operator control unit / ground control station */
-	MAV_TYPE_AIRSHIP,               /* 7: Airship, controlled */
-	MAV_TYPE_FREE_BALLOON,          /* 8: Free balloon, uncontrolled */
-	MAV_TYPE_ROCKET,                /* 9: Rocket */
-	MAV_TYPE_GROUND_ROVER,          /* 10 Ground rover */
-	MAV_TYPE_SURFACE_BOAT,          /* 11: Surface vessel, boat, ship */
-	MAV_TYPE_SUBMARINE,             /* 12: Submarine */
-	MAV_TYPE_HEXAROTOR,             /* 13: Hexarotor */
-	MAV_TYPE_OCTOROTOR,             /* 14: Octorotor */
-	MAV_TYPE_TRICOPTER,             /* 15: Octorotor */
-	MAV_TYPE_FLAPPING_WING,         /* 16: Flapping wing */
-	MAV_TYPE_ENUM_END               /* 17: */
+     MAV_TYPE_GENERIC=0,             /* 0: Generic micro air vehicle. */
+     MAV_TYPE_FIXED_WING,            /* 1: Fixed wing aircraft. */
+     MAV_TYPE_QUADROTOR,             /* 2: Quadrotor */
+     MAV_TYPE_COAXIAL,               /* 3: Coaxial helicopter */
+     MAV_TYPE_HELICOPTER,            /* 4: Normal helicopter with tail rotor. */
+     MAV_TYPE_ANTENNA_TRACKER,       /* 5: Ground installation */
+     MAV_TYPE_GCS,                   /* 6: Operator control unit / ground control station */
+     MAV_TYPE_AIRSHIP,               /* 7: Airship, controlled */
+     MAV_TYPE_FREE_BALLOON,          /* 8: Free balloon, uncontrolled */
+     MAV_TYPE_ROCKET,                /* 9: Rocket */
+     MAV_TYPE_GROUND_ROVER,          /* 10 Ground rover */
+     MAV_TYPE_SURFACE_BOAT,          /* 11: Surface vessel, boat, ship */
+     MAV_TYPE_SUBMARINE,             /* 12: Submarine */
+     MAV_TYPE_HEXAROTOR,             /* 13: Hexarotor */
+     MAV_TYPE_OCTOROTOR,             /* 14: Octorotor */
+     MAV_TYPE_TRICOPTER,             /* 15: Octorotor */
+     MAV_TYPE_FLAPPING_WING,         /* 16: Flapping wing */
+     MAV_TYPE_ENUM_END               /* 17: */
 };
 /*
  * identifiers of components
  */
 enum MAV_COMPONENT {
-	MAV_COMP_ID_ALL=0,              /*  */
-	MAV_COMP_ID_DUMMY=1,            /*  */
-	MAV_COMP_ID_CAMERA=100,         /*  */
-	MAV_COMP_ID_SERVO1=140,         /*  */
-	MAV_COMP_ID_SERVO2=141,         /*  */
-	MAV_COMP_ID_SERVO3=142,         /*  */
-	MAV_COMP_ID_SERVO4=143,         /*  */
-	MAV_COMP_ID_SERVO5=144,         /*  */
-	MAV_COMP_ID_SERVO6=145,         /*  */
-	MAV_COMP_ID_SERVO7=146,         /*  */
-	MAV_COMP_ID_SERVO8=147,         /*  */
-	MAV_COMP_ID_SERVO9=148,         /*  */
-	MAV_COMP_ID_SERVO10=149,        /*  */
-	MAV_COMP_ID_SERVO11=150,        /*  */
-	MAV_COMP_ID_SERVO12=151,        /*  */
-	MAV_COMP_ID_SERVO13=152,        /*  */
-	MAV_COMP_ID_SERVO14=153,        /*  */
-	MAV_COMP_ID_MAPPER=180,         /*  */
-	MAV_COMP_ID_MISSIONPLANNER=190, /*  */
-	MAV_COMP_ID_PATHPLANNER=195,    /*  */
-	MAV_COMP_ID_IMU=200,            /*  */
-	MAV_COMP_ID_IMU_2=201,          /*  */
-	MAV_COMP_ID_IMU_3=202,          /*  */
-	MAV_COMP_ID_IMU_4=203,          /*  */
-	MAV_COMP_ID_IMU_5=204,          /*  */
-	MAV_COMP_ID_IMU_6=205,          /*  */
-	MAV_COMP_ID_GPS=220,            /*  */
-	MAV_COMP_ID_UDP_BRIDGE=240,     /*  */
-	MAV_COMP_ID_UART_BRIDGE=241,    /*  */
-	MAV_COMP_ID_SYSTEM_CONTROL=250, /*  */
-	MAV_COMPONENT_ENUM_END=251      /*  */
+     MAV_COMP_ID_ALL=0,              /*  */
+     MAV_COMP_ID_DUMMY=1,            /*  */
+     MAV_COMP_ID_CAMERA=100,         /*  */
+     MAV_COMP_ID_SERVO1=140,         /*  */
+     MAV_COMP_ID_SERVO2=141,         /*  */
+     MAV_COMP_ID_SERVO3=142,         /*  */
+     MAV_COMP_ID_SERVO4=143,         /*  */
+     MAV_COMP_ID_SERVO5=144,         /*  */
+     MAV_COMP_ID_SERVO6=145,         /*  */
+     MAV_COMP_ID_SERVO7=146,         /*  */
+     MAV_COMP_ID_SERVO8=147,         /*  */
+     MAV_COMP_ID_SERVO9=148,         /*  */
+     MAV_COMP_ID_SERVO10=149,        /*  */
+     MAV_COMP_ID_SERVO11=150,        /*  */
+     MAV_COMP_ID_SERVO12=151,        /*  */
+     MAV_COMP_ID_SERVO13=152,        /*  */
+     MAV_COMP_ID_SERVO14=153,        /*  */
+     MAV_COMP_ID_MAPPER=180,         /*  */
+     MAV_COMP_ID_MISSIONPLANNER=190, /*  */
+     MAV_COMP_ID_PATHPLANNER=195,    /*  */
+     MAV_COMP_ID_IMU=200,            /*  */
+     MAV_COMP_ID_IMU_2=201,          /*  */
+     MAV_COMP_ID_IMU_3=202,          /*  */
+     MAV_COMP_ID_IMU_4=203,          /*  */
+     MAV_COMP_ID_IMU_5=204,          /*  */
+     MAV_COMP_ID_IMU_6=205,          /*  */
+     MAV_COMP_ID_GPS=220,            /*  */
+     MAV_COMP_ID_UDP_BRIDGE=240,     /*  */
+     MAV_COMP_ID_UART_BRIDGE=241,    /*  */
+     MAV_COMP_ID_SYSTEM_CONTROL=250, /*  */
+     MAV_COMPONENT_ENUM_END=251      /*  */
 };
 
 /*
@@ -358,20 +354,20 @@ enum MAV_COMPONENT {
  * Origin: mavlink\common\common.h
  */
 enum MAV_DATA_STREAM {
-	MAV_DATA_STREAM_ALL=0,              /* 0: Enable all data streams */
-	MAV_DATA_STREAM_RAW_SENSORS,        /* 1: Enable IMU_RAW, GPS_RAW, GPS_STATUS packets. */
-	MAV_DATA_STREAM_EXTENDED_STATUS,    /* 2: Enable GPS_STATUS, CONTROL_STATUS, AUX_STATUS */
-	MAV_DATA_STREAM_RC_CHANNELS,        /* 3: Enable RC_CHANNELS_SCALED, RC_CHANNELS_RAW, SERVO_OUTPUT_RAW */
-	MAV_DATA_STREAM_RAW_CONTROLLER,     /* 4: Enable ATTITUDE_CONTROLLER_OUTPUT, POSITION_CONTROLLER_OUTPUT, NAV_CONTROLLER_OUTPUT. */
-    MAV_DATA_STREAM_DUMMY_5,            /* 5: */
-	MAV_DATA_STREAM_POSITION,           /* 6: Enable LOCAL_POSITION, GLOBAL_POSITION/GLOBAL_POSITION_INT messages. */
-    MAV_DATA_STREAM_DUMMY_7,            /* 7: */
-    MAV_DATA_STREAM_DUMMY_8,            /* 8: */
-    MAV_DATA_STREAM_DUMMY_9,            /* 9: */
-	MAV_DATA_STREAM_EXTRA1,             /* 10: Dependent on the autopilot */
-	MAV_DATA_STREAM_EXTRA2,             /* 11: Dependent on the autopilot */
-	MAV_DATA_STREAM_EXTRA3,             /* 12: Dependent on the autopilot */
-	MAV_DATA_STREAM_ENUM_END            /* 13: */
+     MAV_DATA_STREAM_ALL=0,              /* 0: Enable all data streams */
+     MAV_DATA_STREAM_RAW_SENSORS,        /* 1: Enable IMU_RAW, GPS_RAW, GPS_STATUS packets. */
+     MAV_DATA_STREAM_EXTENDED_STATUS,    /* 2: Enable GPS_STATUS, CONTROL_STATUS, AUX_STATUS */
+     MAV_DATA_STREAM_RC_CHANNELS,        /* 3: Enable RC_CHANNELS_SCALED, RC_CHANNELS_RAW, SERVO_OUTPUT_RAW */
+     MAV_DATA_STREAM_RAW_CONTROLLER,     /* 4: Enable ATTITUDE_CONTROLLER_OUTPUT, POSITION_CONTROLLER_OUTPUT, NAV_CONTROLLER_OUTPUT. */
+     MAV_DATA_STREAM_DUMMY_5,            /* 5: */
+     MAV_DATA_STREAM_POSITION,           /* 6: Enable LOCAL_POSITION, GLOBAL_POSITION/GLOBAL_POSITION_INT messages. */
+     MAV_DATA_STREAM_DUMMY_7,            /* 7: */
+     MAV_DATA_STREAM_DUMMY_8,            /* 8: */
+     MAV_DATA_STREAM_DUMMY_9,            /* 9: */
+     MAV_DATA_STREAM_EXTRA1,             /* 10: Dependent on the autopilot */
+     MAV_DATA_STREAM_EXTRA2,             /* 11: Dependent on the autopilot */
+     MAV_DATA_STREAM_EXTRA3,             /* 12: Dependent on the autopilot */
+     MAV_DATA_STREAM_ENUM_END            /* 13: */
 };
 
 /*
@@ -379,13 +375,13 @@ enum MAV_DATA_STREAM {
  * Origin: mavlink\common\common.h
  */
 enum MAVLINK_DATA_STREAM_TYPE {
-	MAVLINK_DATA_STREAM_IMG_JPEG=1,     /* 1: */
-	MAVLINK_DATA_STREAM_IMG_BMP,        /* 2: */
-	MAVLINK_DATA_STREAM_IMG_RAW8U,      /* 3: */
-	MAVLINK_DATA_STREAM_IMG_RAW32U,     /* 4: */
-	MAVLINK_DATA_STREAM_IMG_PGM,        /* 5: */
-	MAVLINK_DATA_STREAM_IMG_PNG,        /* 6: */
-	MAVLINK_DATA_STREAM_TYPE_ENUM_END   /* 7: */
+     MAVLINK_DATA_STREAM_IMG_JPEG=1,     /* 1: */
+     MAVLINK_DATA_STREAM_IMG_BMP,        /* 2: */
+     MAVLINK_DATA_STREAM_IMG_RAW8U,      /* 3: */
+     MAVLINK_DATA_STREAM_IMG_RAW32U,     /* 4: */
+     MAVLINK_DATA_STREAM_IMG_PGM,        /* 5: */
+     MAVLINK_DATA_STREAM_IMG_PNG,        /* 6: */
+     MAVLINK_DATA_STREAM_TYPE_ENUM_END   /* 7: */
 };
 
 /*
@@ -393,12 +389,12 @@ enum MAVLINK_DATA_STREAM_TYPE {
  * Origin: mavlink\common\common.h
  */
 enum MAV_FRAME {
-	MAV_FRAME_GLOBAL=0,             /* 0: Global coordinate frame, WGS84. First value x: latitude, second value y: longitude, third value z: positive altitude (MSL) */
-	MAV_FRAME_LOCAL_NED,            /* 1: Local coordinate frame, Z-up (x: north, y: east, z: down). */
-	MAV_FRAME_MISSION,              /* 2: NOT a coordinate frame, indicates a mission command. */
-	MAV_FRAME_GLOBAL_RELATIVE_ALT,  /* 3: Global coordinate frame, WGS84, relative altitude QFE. First value x: latitude, second value y: longitude, third value z: positive altitude QFE. */
-	MAV_FRAME_LOCAL_ENU,            /* 4: Local coordinate frame, Z-down (x: east, y: north, z: up) */
-	MAV_FRAME_ENUM_END              /* 5:  */
+     MAV_FRAME_GLOBAL=0,             /* 0: Global coordinate frame, WGS84. First value x: latitude, second value y: longitude, third value z: positive altitude (MSL) */
+     MAV_FRAME_LOCAL_NED,            /* 1: Local coordinate frame, Z-up (x: north, y: east, z: down). */
+     MAV_FRAME_MISSION,              /* 2: NOT a coordinate frame, indicates a mission command. */
+     MAV_FRAME_GLOBAL_RELATIVE_ALT,  /* 3: Global coordinate frame, WGS84, relative altitude QFE. First value x: latitude, second value y: longitude, third value z: positive altitude QFE. */
+     MAV_FRAME_LOCAL_ENU,            /* 4: Local coordinate frame, Z-down (x: east, y: north, z: up) */
+     MAV_FRAME_ENUM_END              /* 5:  */
 };
 
 /*
@@ -406,40 +402,40 @@ enum MAV_FRAME {
  * Origin: mavlink\common\common.h
  */
 enum MAV_CMD {
-	MAV_CMD_NAV_WAYPOINT=16,        /* Navigate to MISSION. |Hold time in seconds/10. (ignored by fixed wing)| Acceptance radius in meters | 0 to pass through the WP, if > 0 radius in meters to pass by WP. Positive value for clockwise orbit, negative value for counter-clockwise orbit. Allows trajectory control.| Desired yaw angle at MISSION (rotary wing)| Latitude| Longitude| Altitude| */
-	MAV_CMD_NAV_LOITER_UNLIM=17,    /* Loiter around this MISSION an unlimited amount of time |Empty| Empty| Radius around MISSION, in meters. If positive loiter clockwise, else counter-clockwise| Desired yaw angle.| Latitude| Longitude| Altitude|  */
-	MAV_CMD_NAV_LOITER_TURNS=18,    /* Loiter around this MISSION for X turns |Turns| Empty| Radius around MISSION, in meters. If positive loiter clockwise, else counter-clockwise| Desired yaw angle.| Latitude| Longitude| Altitude|  */
-	MAV_CMD_NAV_LOITER_TIME=19,     /* Loiter around this MISSION for X seconds |Seconds (decimal)| Empty| Radius around MISSION, in meters. If positive loiter clockwise, else counter-clockwise| Desired yaw angle.| Latitude| Longitude| Altitude|  */
-	MAV_CMD_NAV_RETURN_TO_LAUNCH=20, /* Return to launch location |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_NAV_LAND=21,            /* Land at location |Empty| Empty| Empty| Desired yaw angle.| Latitude| Longitude| Altitude|  */
-	MAV_CMD_NAV_TAKEOFF=22,         /* Takeoff from ground / hand |Minimum pitch (if airspeed sensor present), desired pitch without sensor| Empty| Empty| Yaw angle (if magnetometer present), ignored without magnetometer| Latitude| Longitude| Altitude|  */
-	MAV_CMD_NAV_ROI=80,             /* Sets the region of interest (ROI) for a sensor set or the vehicle itself. This can then be used by the vehicles control system to control the vehicle attitude and the attitude of various sensors such as cameras. |Region of intereset mode. (see MAV_ROI enum)| MISSION index/ target ID. (see MAV_ROI enum)| ROI index (allows a vehicle to manage multiple ROI's)| Empty| x the location of the fixed ROI (see MAV_FRAME)| y| z|  */
-	MAV_CMD_NAV_PATHPLANNING=81,    /* Control autonomous path planning on the MAV. |0: Disable local obstacle avoidance / local path planning (without resetting map), 1: Enable local path planning, 2: Enable and reset local path planning| 0: Disable full path planning (without resetting map), 1: Enable, 2: Enable and reset map/occupancy grid, 3: Enable and reset planned route, but not occupancy grid| Empty| Yaw angle at goal, in compass degrees, [0..360]| Latitude/X of goal| Longitude/Y of goal| Altitude/Z of goal|  */
-	MAV_CMD_NAV_LAST=95,            /* NOP - This command is only used to mark the upper limit of the NAV/ACTION commands in the enumeration |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_CONDITION_DELAY=112,    /* Delay mission state machine. |Delay in seconds (decimal)| Empty| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_CONDITION_CHANGE_ALT=113, /* Ascend/descend at rate.  Delay mission state machine until desired altitude reached. |Descent / Ascend rate (m/s)| Empty| Empty| Empty| Empty| Empty| Finish Altitude|  */
-	MAV_CMD_CONDITION_DISTANCE=114, /* Delay mission state machine until within desired distance of next NAV point. |Distance (meters)| Empty| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_CONDITION_YAW=115,      /* Reach a certain target angle. |target angle: [0-360], 0 is north| speed during yaw change:[deg per second]| direction: negative: counter clockwise, positive: clockwise [-1,1]| relative offset or absolute angle: [ 1,0]| Empty| Empty| Empty|  */
-	MAV_CMD_CONDITION_LAST=159,     /* NOP - This command is only used to mark the upper limit of the CONDITION commands in the enumeration |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_DO_SET_MODE=176,        /* Set system mode. |Mode, as defined by ENUM MAV_MODE| Empty| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_DO_JUMP=177,            /* Jump to the desired command in the mission list.  Repeat this action only the specified number of times |Sequence number| Repeat count| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_DO_CHANGE_SPEED=178,    /* Change speed and/or throttle set points. |Speed type (0=Airspeed, 1=Ground Speed)| Speed  (m/s, -1 indicates no change)| Throttle  ( Percent, -1 indicates no change)| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_DO_SET_HOME=179,        /* Changes the home location either to the current location or a specified location. |Use current (1=use current location, 0=use specified location)| Empty| Empty| Empty| Latitude| Longitude| Altitude|  */
-	MAV_CMD_DO_SET_PARAMETER=180,   /* Set a system parameter.  Caution!  Use of this command requires knowledge of the numeric enumeration value of the parameter. |Parameter number| Parameter value| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_DO_SET_RELAY=181,       /* Set a relay to a condition. |Relay number| Setting (1=on, 0=off, others possible depending on system hardware)| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_DO_REPEAT_RELAY=182,    /* Cycle a relay on and off for a desired number of cyles with a desired period. |Relay number| Cycle count| Cycle time (seconds, decimal)| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_DO_SET_SERVO=183,       /* Set a servo to a desired PWM value. |Servo number| PWM (microseconds, 1000 to 2000 typical)| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_DO_REPEAT_SERVO=184,    /* Cycle a between its nominal setting and a desired PWM for a desired number of cycles with a desired period. |Servo number| PWM (microseconds, 1000 to 2000 typical)| Cycle count| Cycle time (seconds)| Empty| Empty| Empty|  */
-	MAV_CMD_DO_CONTROL_VIDEO=200,   /* Control onboard camera system. |Camera ID (-1 for all)| Transmission: 0: disabled, 1: enabled compressed, 2: enabled raw| Transmission mode: 0: video stream, >0: single images every n seconds (decimal)| Recording: 0: disabled, 1: enabled compressed, 2: enabled raw| Empty| Empty| Empty|  */
-	MAV_CMD_DO_LAST=240,            /* NOP - This command is only used to mark the upper limit of the DO commands in the enumeration |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
-	MAV_CMD_PREFLIGHT_CALIBRATION=241, /* Trigger calibration. This command will be only accepted if in pre-flight mode. |Gyro calibration: 0: no, 1: yes| Magnetometer calibration: 0: no, 1: yes| Ground pressure: 0: no, 1: yes| Radio calibration: 0: no, 1: yes| Empty| Empty| Empty|  */
-	MAV_CMD_PREFLIGHT_SET_SENSOR_OFFSETS=242, /* Set sensor offsets. This command will be only accepted if in pre-flight mode. |Sensor to adjust the offsets for: 0: gyros, 1: accelerometer, 2: magnetometer, 3: barometer, 4: optical flow| X axis offset (or generic dimension 1), in the sensor's raw units| Y axis offset (or generic dimension 2), in the sensor's raw units| Z axis offset (or generic dimension 3), in the sensor's raw units| Generic dimension 4, in the sensor's raw units| Generic dimension 5, in the sensor's raw units| Generic dimension 6, in the sensor's raw units|  */
-	MAV_CMD_PREFLIGHT_STORAGE=245,  /* Request storage of different parameter values and logs. This command will be only accepted if in pre-flight mode. |Parameter storage: 0: READ FROM FLASH/EEPROM, 1: WRITE CURRENT TO FLASH/EEPROM| Mission storage: 0: READ FROM FLASH/EEPROM, 1: WRITE CURRENT TO FLASH/EEPROM| Reserved| Reserved| Empty| Empty| Empty|  */
-	MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN=246, /* Request the reboot or shutdown of system components. |0: Do nothing for autopilot, 1: Reboot autopilot, 2: Shutdown autopilot.| 0: Do nothing for onboard computer, 1: Reboot onboard computer, 2: Shutdown onboard computer.| Reserved| Reserved| Empty| Empty| Empty|  */
-	MAV_CMD_OVERRIDE_GOTO=252,      /* Hold / continue the current action |MAV_GOTO_DO_HOLD: hold MAV_GOTO_DO_CONTINUE: continue with next item in mission plan| MAV_GOTO_HOLD_AT_CURRENT_POSITION: Hold at current position MAV_GOTO_HOLD_AT_SPECIFIED_POSITION: hold at specified position| MAV_FRAME coordinate frame of hold point| Desired yaw angle in degrees| Latitude / X position| Longitude / Y position| Altitude / Z position|  */
-	MAV_CMD_MISSION_START=300,      /* start running a mission |first_item: the first mission item to run| last_item:  the last mission item to run (after this item is run, the mission ends)|  */
-	MAV_CMD_COMPONENT_ARM_DISARM=400, /* Arms / Disarms a component |1 to arm, 0 to disarm|  */
-	MAV_CMD_ENUM_END=401            /*  */
+     MAV_CMD_NAV_WAYPOINT=16,        /* Navigate to MISSION. |Hold time in seconds/10. (ignored by fixed wing)| Acceptance radius in meters | 0 to pass through the WP, if > 0 radius in meters to pass by WP. Positive value for clockwise orbit, negative value for counter-clockwise orbit. Allows trajectory control.| Desired yaw angle at MISSION (rotary wing)| Latitude| Longitude| Altitude| */
+     MAV_CMD_NAV_LOITER_UNLIM=17,    /* Loiter around this MISSION an unlimited amount of time |Empty| Empty| Radius around MISSION, in meters. If positive loiter clockwise, else counter-clockwise| Desired yaw angle.| Latitude| Longitude| Altitude|  */
+     MAV_CMD_NAV_LOITER_TURNS=18,    /* Loiter around this MISSION for X turns |Turns| Empty| Radius around MISSION, in meters. If positive loiter clockwise, else counter-clockwise| Desired yaw angle.| Latitude| Longitude| Altitude|  */
+     MAV_CMD_NAV_LOITER_TIME=19,     /* Loiter around this MISSION for X seconds |Seconds (decimal)| Empty| Radius around MISSION, in meters. If positive loiter clockwise, else counter-clockwise| Desired yaw angle.| Latitude| Longitude| Altitude|  */
+     MAV_CMD_NAV_RETURN_TO_LAUNCH=20, /* Return to launch location |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_NAV_LAND=21,            /* Land at location |Empty| Empty| Empty| Desired yaw angle.| Latitude| Longitude| Altitude|  */
+     MAV_CMD_NAV_TAKEOFF=22,         /* Takeoff from ground / hand |Minimum pitch (if airspeed sensor present), desired pitch without sensor| Empty| Empty| Yaw angle (if magnetometer present), ignored without magnetometer| Latitude| Longitude| Altitude|  */
+     MAV_CMD_NAV_ROI=80,             /* Sets the region of interest (ROI) for a sensor set or the vehicle itself. This can then be used by the vehicles control system to control the vehicle attitude and the attitude of various sensors such as cameras. |Region of intereset mode. (see MAV_ROI enum)| MISSION index/ target ID. (see MAV_ROI enum)| ROI index (allows a vehicle to manage multiple ROI's)| Empty| x the location of the fixed ROI (see MAV_FRAME)| y| z|  */
+     MAV_CMD_NAV_PATHPLANNING=81,    /* Control autonomous path planning on the MAV. |0: Disable local obstacle avoidance / local path planning (without resetting map), 1: Enable local path planning, 2: Enable and reset local path planning| 0: Disable full path planning (without resetting map), 1: Enable, 2: Enable and reset map/occupancy grid, 3: Enable and reset planned route, but not occupancy grid| Empty| Yaw angle at goal, in compass degrees, [0..360]| Latitude/X of goal| Longitude/Y of goal| Altitude/Z of goal|  */
+     MAV_CMD_NAV_LAST=95,            /* NOP - This command is only used to mark the upper limit of the NAV/ACTION commands in the enumeration |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_CONDITION_DELAY=112,    /* Delay mission state machine. |Delay in seconds (decimal)| Empty| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_CONDITION_CHANGE_ALT=113, /* Ascend/descend at rate.  Delay mission state machine until desired altitude reached. |Descent / Ascend rate (m/s)| Empty| Empty| Empty| Empty| Empty| Finish Altitude|  */
+     MAV_CMD_CONDITION_DISTANCE=114, /* Delay mission state machine until within desired distance of next NAV point. |Distance (meters)| Empty| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_CONDITION_YAW=115,      /* Reach a certain target angle. |target angle: [0-360], 0 is north| speed during yaw change:[deg per second]| direction: negative: counter clockwise, positive: clockwise [-1,1]| relative offset or absolute angle: [ 1,0]| Empty| Empty| Empty|  */
+     MAV_CMD_CONDITION_LAST=159,     /* NOP - This command is only used to mark the upper limit of the CONDITION commands in the enumeration |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_DO_SET_MODE=176,        /* Set system mode. |Mode, as defined by ENUM MAV_MODE| Empty| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_DO_JUMP=177,            /* Jump to the desired command in the mission list.  Repeat this action only the specified number of times |Sequence number| Repeat count| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_DO_CHANGE_SPEED=178,    /* Change speed and/or throttle set points. |Speed type (0=Airspeed, 1=Ground Speed)| Speed  (m/s, -1 indicates no change)| Throttle  ( Percent, -1 indicates no change)| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_DO_SET_HOME=179,        /* Changes the home location either to the current location or a specified location. |Use current (1=use current location, 0=use specified location)| Empty| Empty| Empty| Latitude| Longitude| Altitude|  */
+     MAV_CMD_DO_SET_PARAMETER=180,   /* Set a system parameter.  Caution!  Use of this command requires knowledge of the numeric enumeration value of the parameter. |Parameter number| Parameter value| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_DO_SET_RELAY=181,       /* Set a relay to a condition. |Relay number| Setting (1=on, 0=off, others possible depending on system hardware)| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_DO_REPEAT_RELAY=182,    /* Cycle a relay on and off for a desired number of cyles with a desired period. |Relay number| Cycle count| Cycle time (seconds, decimal)| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_DO_SET_SERVO=183,       /* Set a servo to a desired PWM value. |Servo number| PWM (microseconds, 1000 to 2000 typical)| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_DO_REPEAT_SERVO=184,    /* Cycle a between its nominal setting and a desired PWM for a desired number of cycles with a desired period. |Servo number| PWM (microseconds, 1000 to 2000 typical)| Cycle count| Cycle time (seconds)| Empty| Empty| Empty|  */
+     MAV_CMD_DO_CONTROL_VIDEO=200,   /* Control onboard camera system. |Camera ID (-1 for all)| Transmission: 0: disabled, 1: enabled compressed, 2: enabled raw| Transmission mode: 0: video stream, >0: single images every n seconds (decimal)| Recording: 0: disabled, 1: enabled compressed, 2: enabled raw| Empty| Empty| Empty|  */
+     MAV_CMD_DO_LAST=240,            /* NOP - This command is only used to mark the upper limit of the DO commands in the enumeration |Empty| Empty| Empty| Empty| Empty| Empty| Empty|  */
+     MAV_CMD_PREFLIGHT_CALIBRATION=241, /* Trigger calibration. This command will be only accepted if in pre-flight mode. |Gyro calibration: 0: no, 1: yes| Magnetometer calibration: 0: no, 1: yes| Ground pressure: 0: no, 1: yes| Radio calibration: 0: no, 1: yes| Empty| Empty| Empty|  */
+     MAV_CMD_PREFLIGHT_SET_SENSOR_OFFSETS=242, /* Set sensor offsets. This command will be only accepted if in pre-flight mode. |Sensor to adjust the offsets for: 0: gyros, 1: accelerometer, 2: magnetometer, 3: barometer, 4: optical flow| X axis offset (or generic dimension 1), in the sensor's raw units| Y axis offset (or generic dimension 2), in the sensor's raw units| Z axis offset (or generic dimension 3), in the sensor's raw units| Generic dimension 4, in the sensor's raw units| Generic dimension 5, in the sensor's raw units| Generic dimension 6, in the sensor's raw units|  */
+     MAV_CMD_PREFLIGHT_STORAGE=245,  /* Request storage of different parameter values and logs. This command will be only accepted if in pre-flight mode. |Parameter storage: 0: READ FROM FLASH/EEPROM, 1: WRITE CURRENT TO FLASH/EEPROM| Mission storage: 0: READ FROM FLASH/EEPROM, 1: WRITE CURRENT TO FLASH/EEPROM| Reserved| Reserved| Empty| Empty| Empty|  */
+     MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN=246, /* Request the reboot or shutdown of system components. |0: Do nothing for autopilot, 1: Reboot autopilot, 2: Shutdown autopilot.| 0: Do nothing for onboard computer, 1: Reboot onboard computer, 2: Shutdown onboard computer.| Reserved| Reserved| Empty| Empty| Empty|  */
+     MAV_CMD_OVERRIDE_GOTO=252,      /* Hold / continue the current action |MAV_GOTO_DO_HOLD: hold MAV_GOTO_DO_CONTINUE: continue with next item in mission plan| MAV_GOTO_HOLD_AT_CURRENT_POSITION: Hold at current position MAV_GOTO_HOLD_AT_SPECIFIED_POSITION: hold at specified position| MAV_FRAME coordinate frame of hold point| Desired yaw angle in degrees| Latitude / X position| Longitude / Y position| Altitude / Z position|  */
+     MAV_CMD_MISSION_START=300,      /* start running a mission |first_item: the first mission item to run| last_item:  the last mission item to run (after this item is run, the mission ends)|  */
+     MAV_CMD_COMPONENT_ARM_DISARM=400, /* Arms / Disarms a component |1 to arm, 0 to disarm|  */
+     MAV_CMD_ENUM_END=401            /*  */
 };
 
 /*----------------------------------- Types ----------------------------------*/
@@ -692,7 +688,7 @@ static __inline void checksum_accumulate(uint8_t data)
  *
  *---------------------------------------------------------------------------*/
 static void Mavlink_Send( uint8_t crc_extra ) {
-	uint16_t j;
+     uint16_t j;
     uint8_t length = uc_tx_msg[1];
 
     checksum_init();
@@ -721,7 +717,7 @@ static void Mavlink_Send( uint8_t crc_extra ) {
  * @returns -
  * @remarks
  * The heartbeat message shows that a system is present and responding.
- *	The type of the MAV and Autopilot hardware allow the receiving system
+ * The type of the MAV and Autopilot hardware allow the receiving system
  * to treat further messages from this system appropriate (e.g. by laying
  * out the user interface based on the autopilot).
  * Name = MAVLINK_MSG_ID_HEARTBEAT, ID = 0, Length = 9
@@ -739,15 +735,15 @@ static void Mavlink_Send( uint8_t crc_extra ) {
  *
  *---------------------------------------------------------------------------*/
 void Mavlink_Heartbeat( void ) {
-	uint16_t j;
+     uint16_t j;
 
     for (j = 0; j < PACKET_LEN; j++) {
         uc_tx_msg[j] = 0;
     }
 
     uc_tx_msg[1] = 9;                              /* Payload length */
-	uc_tx_msg[5] = MAVLINK_MSG_ID_HEARTBEAT;       /* Heartbeat message ID */
-	uc_tx_msg[10] = (uint8_t)MAV_TYPE_FIXED_WING;  /* Type of the MAV, defined in MAV_TYPE ENUM */
+    uc_tx_msg[5] = MAVLINK_MSG_ID_HEARTBEAT;       /* Heartbeat message ID */
+    uc_tx_msg[10] = (uint8_t)MAV_TYPE_FIXED_WING;  /* Type of the MAV, defined in MAV_TYPE ENUM */
     Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_HEARTBEAT]);
 }
 
@@ -926,7 +922,7 @@ void Mavlink_Param_Send( uint16_t param_index, uint16_t param_count ) {
     *((uint16_t *)(&uc_tx_msg[10])) = param_count;            /* Total number of parameters */
     *((uint16_t *)(&uc_tx_msg[12])) = param_index;            /* Parameter index */
     for (j = 0; j < 16; j++) {
-        uc_tx_msg[j + 14] = s_parameter_name[param_index][j];  /* Parameter name */
+        uc_tx_msg[j + 14] = s_parameter_name[param_index][j]; /* Parameter name */
     }
     uc_tx_msg[30] = (uint8_t)MAVLINK_TYPE_FLOAT;              /* Parameter type */
 
@@ -1296,7 +1292,7 @@ static bool Mavlink_Parse(void) {
         break;
 
       case MAVLINK_PARSE_STATE_GOT_CRC1:
-        if (c != (ui_crc >> 8)) {	/* Check second checksum byte */
+        if (c != (ui_crc >> 8)) {     /* Check second checksum byte */
          /* parse_error++; */
           msg_received = FALSE;
           parse_state = MAVLINK_PARSE_STATE_IDLE;
@@ -1305,7 +1301,7 @@ static bool Mavlink_Parse(void) {
             len = 0;
             checksum_init();
           }
-        } else {		        /* Successfully got message */
+        } else {                  /* Successfully got message */
           msg_received = TRUE;
           parse_state = MAVLINK_PARSE_STATE_IDLE;
           uc_rx_msg[packet_idx + 1] = c;
@@ -1357,7 +1353,7 @@ void Mavlink_Receive(void)
             case MAVLINK_MSG_ID_REQUEST_DATA_STREAM:
                 Mavlink_Data_Stream();
                 break;
-            case MAVLINK_MSG_ID_COMMAND_LONG:	    /* */
+            case MAVLINK_MSG_ID_COMMAND_LONG:       /* */
                 break;
             case MAVLINK_MSG_ID_PARAM_REQUEST_LIST: /* */
                 ui_parameter_i = 0;
@@ -1376,10 +1372,10 @@ void Mavlink_Receive(void)
             case MAVLINK_MSG_ID_MISSION_REQUEST:
                 Mavlink_Mission_Item();
                 break;
-            default:				                /* Do nothing */
+            default:                                /* Do nothing */
                 break;
         }
-    }		                                        /* */
+    }                                               /* */
 /*    packet_drops += packet_rx_drop_count; */      /* Update global packet drops counter */
 }
 
@@ -1405,9 +1401,9 @@ void Mavlink_Queued_Send ( void ) {
      * there are parameters to be sent
      */
     if (ui_parameter_i < ONBOARD_PARAM_COUNT) {
-      /*
-       * send parameters
-       */
+    /*
+     * send parameters
+     */
       Mavlink_Param_Send(ui_parameter_i++, ONBOARD_PARAM_COUNT);
     }
   } else if ((uc_send_period % 50) == 0) {      /* @ 1 Hz       */
