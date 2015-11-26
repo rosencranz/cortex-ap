@@ -1,17 +1,10 @@
 /*============================================================================+
  *
- * $HeadURL: $
- * $Revision: $
- * $Date:  $
- * $Author: $
- *
  * @brief Remote control PPM input
+ * @file rc_stub.c
  *
- * @file
  *
- *
- * Change:
- *
+ * Change: modified initial value of aileron channel
  *
  *============================================================================*/
 
@@ -51,11 +44,11 @@
 
 static int8_t c_signal_level = 10;               /* signal level estimation */
 static uint16_t ui_pulse_buffer[RC_CHANNELS] = { /* rc channel pulses */
+    PPM_PULSE_NEUTRAL - 2,
     PPM_PULSE_NEUTRAL,
     PPM_PULSE_NEUTRAL,
     PPM_PULSE_NEUTRAL,
     PPM_PULSE_NEUTRAL,
-    MANUAL_THRESHOLD_L - 10,
     PPM_PULSE_NEUTRAL,
     PPM_PULSE_NEUTRAL
 };
