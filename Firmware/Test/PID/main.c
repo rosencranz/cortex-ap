@@ -1,5 +1,6 @@
 /*
-*/
+ * Changes: Init_Control() replaced with Control_Init()
+ */
 
 #include <stdlib.h>
 
@@ -60,7 +61,7 @@ int main(void) {
   Init_DCM();
   Init_Servo();
   Init_RC();
-  Init_Control();
+  Control_Init();
 
   /*
    * Create test thread.
