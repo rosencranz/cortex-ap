@@ -36,7 +36,7 @@
  *     Distance = sqrt(Delta Lon ^ 2 + Delta Lat ^ 2) * 111320
  * \endcode
  *
- * Change: corrected sign of direction error, corrected heading range [0,2PI].
+ * Change: added body to function Nav_Wpt_Set()
  *
  *============================================================================*/
 
@@ -319,7 +319,7 @@ static bool parse_waypoint ( const uint8_t * psz_line ) {
  *
  * @brief   Get total waypoint number
  * @param   -
- * @return waypoint number
+ * @return  waypoint number
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -331,7 +331,7 @@ uint16_t Nav_Wpt_Number ( void ) {
  *
  * @brief   Get waypoint index
  * @param   -
- * @return waypoint index
+ * @return  waypoint index
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -343,7 +343,7 @@ uint16_t Nav_Wpt_Index ( void ) {
  *
  * @brief   Get waypoint altitude [m]
  * @param   -
- * @return altitude
+ * @return  altitude
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -355,7 +355,7 @@ uint16_t Nav_Wpt_Altitude ( void ) {
  *
  * @brief   Get waypoint data
  * @param   index = waypoint number
- * @return waypoint data structure
+ * @return  waypoint data structure
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -373,20 +373,21 @@ void Nav_Wpt_Get ( uint16_t index, STRUCT_WPT * wpt ) {
  * @brief   Set waypoint data
  * @param   index = waypoint number
  * @param   wpt = waypoint data structure
- * @return -
+ * @return  -
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
-void Nav_Wpt_Set ( uint16_t index, STRUCT_WPT wpt ) {
-    (void) index;
-    (void) wpt;
+void Nav_Wpt_Set ( uint16_t index, STRUCT_WPT * wpt ) {
+   waypoint[index].lat = wpt->lat;
+   waypoint[index].lon = wpt->lon;
+   waypoint[index].alt = wpt->alt;
 }
 
 /*----------------------------------------------------------------------------
  *
  * @brief   Get computed bearing [°]
  * @param   -
- * @return bearing angle in radian, between 0 and 2 * PI
+ * @return  bearing angle in radian, between 0 and 2 * PI
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -398,7 +399,7 @@ float Nav_Bearing_Rad ( void ) {
  *
  * @brief   Get distance to destination [m]
  * @param   -
- * @return distance in meters
+ * @return  distance in meters
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -408,9 +409,9 @@ uint16_t Nav_Distance ( void ) {
 
 /*----------------------------------------------------------------------------
  *
- * @brief   Get throttle
+ * @brief   Get altitude error 
  * @param   -
- * @return throttle
+ * @return  altitude error
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
