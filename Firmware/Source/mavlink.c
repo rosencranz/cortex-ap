@@ -20,8 +20,8 @@
  * \endcode
  * ------------- Mavlink identifiers and message lengths -------------
  *
- * All identifiers are prefixed with MAVLINK_MSG_ID_ in the code, e.g.
- * ID of HEARTBEAT message will be MAVLINK_MSG_ID_HEARTBEAT
+ * All identifiers are prefixed with "MAVLINK_MSG_ID_" in the code,
+ * e.g. ID of "HEARTBEAT" message will be "MAVLINK_MSG_ID_HEARTBEAT".
  *
  * \code
  * Identifier (MSGID)    Value  Length Status
@@ -49,11 +49,11 @@
  *
  * --------------------- Mavlink message contents --------------------
  *
- * All following identifiers are prefixed with MAVLINK_MSG_ID_ in the code,
- *  e.g. ID of HEARTBEAT message will be MAVLINK_MSG_ID_HEARTBEAT
+ * All identifiers are prefixed with "MAVLINK_MSG_ID_" in the code,
+ * e.g. ID of "HEARTBEAT" message will be "MAVLINK_MSG_ID_HEARTBEAT".
  *
  * \code
- * Identifier (MSGID)    Content           Offset  Type    Note
+ * Identifier (MSGID)    Content           Offset Type    Note
  * -----------------------------------------------------------------------
  * HEARTBEAT             see code
  *
@@ -144,17 +144,10 @@
  *
  * \endcode
  *
- *--------------------- APM messages taxonomy ------------------------
- *
- * Menu            Message              ID Len
- * --------------------------------------------
- * Refresh param   param request list   15  2
- * (arduplane PIDs)
- *
  *--------------------- ArduCAM OSD messages taxonomy ------------------------
  *
  * Message              ID Len         Payload
- * ----------------------------------------------------------
+ * ---------------------------------------------------------------------------
  * request data stream  42  6
  *                             rate  sys  comp stream   cmd    note
  *          "                    2    14   C8     1    start   sensors
@@ -166,22 +159,21 @@
  *
  * ------------------------------ Links ------------------------------
  *
- * ArduPilot Mega parameters modifiable by MAVLink
- * http://code.google.com/p/ardupilot-mega/wiki/MAVParam
- *
- * ArduPilot Mega MAVLink commands
- * http://code.google.com/p/ardupilot-mega/wiki/MAVLink
- *
  * MAVLink protocol specifications
  * http://qgroundcontrol.org/mavlink/start
- * http://groundcontrol.org/dev/mavlink_arduino_integration_tutorial
  * http://qgroundcontrol.org/dev/mavlink_onboard_integration_tutorial
  *
- * List of commands
+ * MAVLINK waypoint protocol
+ * http://qgroundcontrol.org/mavlink/waypoint_protocol
+ *
+ * MAVLINK message set
  * https://pixhawk.ethz.ch/mavlink/
  *
- * Change: removed tab characters
- *
+ * Change: Mavlink_Mission_Count() renamed Mavlink_Mission_Count_Send()
+ *         Mavlink_Mission_Item() renamed Mavlink_Mission_Item_Send()
+ *         added Mavlink_Mission_Item_Get() and Mavlink_Wpt_Request()
+ *         added management of MISSION_REQUEST and MISSION_COUNT to Mavlink_Receive()
+ *         added call to Mavlink_Wpt_Request() inside Mavlink_Queued_Send()
  *
  *============================================================================*/
 
@@ -212,26 +204,26 @@
 #define PACKET_LEN                  64
 #define PAYLOAD_LEN                 64
                                                 /* Origin */
-#define MAVLINK_MSG_ID_HEARTBEAT            0   /* mavlink\common\mavlink_msg_heartbeat.h */
-#define MAVLINK_MSG_ID_VFR_HUD              74  /* mavlink\common\mavlink_msg_vfr_hud.h */
-#define MAVLINK_MSG_ID_ATTITUDE             30  /* mavlink\common\mavlink_msg_attitude.h */
-#define MAVLINK_MSG_ID_GPS_RAW_INT          24  /* mavlink\common\mavlink_msg_gps_raw_int.h */
-#define MAVLINK_MSG_ID_GLOBAL_POSITION_INT  33  /* mavlink\common\mavlink_msg_global_position_int.h */
-#define MAVLINK_MSG_ID_PARAM_VALUE          22  /* mavlink\common\mavlink_msg_param_value.h */
-#define MAVLINK_MSG_ID_MISSION_COUNT        44  /* mavlink\common\mavlink_msg_mission_count.h */
-#define MAVLINK_MSG_ID_MISSION_ITEM         39  /* mavlink\common\mavlink_msg_mission_item.h */
-#define MAVLINK_MSG_ID_REQUEST_DATA_STREAM  66  /* mavlink\common\mavlink_msg_request_data_stream.h */
-#define MAVLINK_MSG_ID_COMMAND_LONG         76  /* mavlink\common\mavlink_msg_command_long.h */
+#define MAVLINK_MSG_ID_HEARTBEAT             0  /* mavlink\common\mavlink_msg_heartbeat.h */
 #define MAVLINK_MSG_ID_PARAM_REQUEST_LIST   21  /* mavlink\common\mavlink_msg_param_request_list.h */
+#define MAVLINK_MSG_ID_PARAM_VALUE          22  /* mavlink\common\mavlink_msg_param_value.h */
 #define MAVLINK_MSG_ID_PARAM_SET            23  /* mavlink\common\mavlink_msg_param_set.h */
-#define MAVLINK_MSG_ID_HIL_STATE            90  /* mavlink\common\mavlink_msg_hil_state.h */
-#define MAVLINK_MSG_ID_MISSION_REQUEST_LIST 43  /* mavlink\common\mavlink_msg_mission_request_list.h */
+#define MAVLINK_MSG_ID_GPS_RAW_INT          24  /* mavlink\common\mavlink_msg_gps_raw_int.h */
+#define MAVLINK_MSG_ID_ATTITUDE             30  /* mavlink\common\mavlink_msg_attitude.h */
+#define MAVLINK_MSG_ID_GLOBAL_POSITION_INT  33  /* mavlink\common\mavlink_msg_global_position_int.h */
+#define MAVLINK_MSG_ID_MISSION_ITEM         39  /* mavlink\common\mavlink_msg_mission_item.h */
 #define MAVLINK_MSG_ID_MISSION_REQUEST      40  /* mavlink\common\mavlink_msg_mission_request.h */
+#define MAVLINK_MSG_ID_MISSION_REQUEST_LIST 43  /* mavlink\common\mavlink_msg_mission_request_list.h */
+#define MAVLINK_MSG_ID_MISSION_COUNT        44  /* mavlink\common\mavlink_msg_mission_count.h */
+#define MAVLINK_MSG_ID_REQUEST_DATA_STREAM  66  /* mavlink\common\mavlink_msg_request_data_stream.h */
+#define MAVLINK_MSG_ID_VFR_HUD              74  /* mavlink\common\mavlink_msg_vfr_hud.h */
+#define MAVLINK_MSG_ID_COMMAND_LONG         76  /* mavlink\common\mavlink_msg_command_long.h */
+#define MAVLINK_MSG_ID_HIL_STATE            90  /* mavlink\common\mavlink_msg_hil_state.h */
 #define X25_INIT_CRC                    0xFFFF  /* mavlink\checksum.h */
 #if (0)
 #define X25_VALIDATE_CRC                0xF0B8  /* mavlink\matrixpilot\mavlink.h */
 #endif
-#define MAVLINK_STX                     0xFE    /* mavlink\matrixpilot\mavlink.h */
+#define MAVLINK_STX                       0xFE  /* mavlink\matrixpilot\mavlink.h */
                                                 /* mavlink\matrixpilot\matrixpilot.h */
 #define MAVLINK_MESSAGE_CRCS {          \
  50, 124, 137,   0, 237, 217, 104, 119, \
@@ -509,11 +501,23 @@ static const uint8_t s_parameter_name[ONBOARD_PARAM_COUNT][ONBOARD_PARAM_NAME_LE
 };
 
 #if (0)
-static const uint8_t uc_autopilot_type = MAV_AUTOPILOT_GENERIC;  /* Autopilot capabilities */
-static const uint8_t uc_system_type = MAV_TYPE_FIXED_WING;       /* Aircraft type */
+/* 
+ * Autopilot capabilities 
+ */
+static const uint8_t        uc_autopilot_type       = MAV_AUTOPILOT_GENERIC;
+/* 
+ * Aircraft type 
+ */
+static const uint8_t        uc_system_type          = MAV_TYPE_FIXED_WING;       
 #endif
-static const uint8_t uc_system_ID = 1;                           /* System ID (original: 20) */
-static const enum MAV_COMPONENT e_component_ID = MAV_COMP_ID_DUMMY; /* Component ID (original: MAV_COMP_ID_IMU) */
+/* 
+ * System ID (original: 20) 
+ */
+static const uint8_t        uc_system_ID            = 1;
+/* 
+ * Component ID (original: MAV_COMP_ID_IMU) 
+ */
+static const enum MAV_COMPONENT e_component_ID      = MAV_COMP_ID_DUMMY; 
 
 /*---------------------------------- Globals ---------------------------------*/
 
@@ -524,23 +528,27 @@ extern struct global_struct global_data;
 /*----------------------------------- Locals ---------------------------------*/
 
 #if (0)
-static uint8_t System_Mode = MAV_MODE_PREFLIGHT;  /* Booting up */
-static uint8_t System_State = MAV_STATE_STANDBY;  /* System ready for flight */
-static uint16_t mode = MAV_MODE_UNINIT;           /* Defined in mavlink_types.h, which is included by mavlink.h */
-static uint32_t custom_mode;
-static mavlink_system_t mavlink_system;
-static mavlink_param_set_t set;
-static mavlink_status_t status;
-static mavlink_message_t msg;
+static uint8_t              System_Mode             = MAV_MODE_PREFLIGHT;   /* Booting up */
+static uint8_t              System_State            = MAV_STATE_STANDBY;    /* System ready for flight */
+static uint8_t              packet_rx_drop_count;
+static uint16_t             packet_drops            = 0;
+static uint16_t             mode                    = MAV_MODE_UNINIT;
+static uint32_t             custom_mode;
+static mavlink_system_t     mavlink_system;
+static mavlink_param_set_t  set;
+static mavlink_status_t     status;
+static mavlink_message_t    msg;
 #endif
 
-static uint8_t uc_current_tx_seq = 0;
-/* static uint16_t packet_drops = 0; */
-/* static uint8_t packet_rx_drop_count; */
-static uint16_t ui_parameter_i = ONBOARD_PARAM_COUNT;
-static uint8_t uc_msg_ID;
-static uint16_t ui_crc;
-static STRUCT_WPT wpt;
+static uint8_t              uc_msg_ID;
+static uint8_t              uc_current_tx_seq       = 0;
+static uint16_t             ui_parameter_i          = ONBOARD_PARAM_COUNT;
+static uint16_t             ui_wpt_get_index        = 0;
+static uint16_t             ui_wpt_get_last         = 0;
+static uint16_t             ui_wpt_get_total        = 0;
+static uint16_t             ui_crc;
+static STRUCT_WPT           wpt;
+static bool                 b_wpt_receiving         = FALSE;
 
 /*
  * buffer for incoming messages
@@ -589,6 +597,7 @@ static uint8_t uc_stream_rate[MAV_DATA_STREAM_ENUM_END] = {
     2,  /* 11: Extra 2, autopilot dependent */
     0   /* 12: Extra 3, autopilot dependent */
 };
+
 static float f_param_value[ONBOARD_PARAM_COUNT] = {
     ROLL_KP,    /* default roll kp */
     ROLL_KI,    /* default roll ki */
@@ -613,17 +622,20 @@ static SerialConfig sdcfg = {
 
 static __inline void checksum_init( void );
 static __inline void checksum_accumulate( uint8_t data );
-static void Mavlink_Send( uint8_t crc_extra );
-void Mavlink_Heartbeat( void );
-void Mavlink_Hud( void );
-void Mavlink_Attitude( void );
-void Mavlink_Gps_Raw( void );
-void Mavlink_Position( void );
-void Mavlink_Param_Send( uint16_t param_index, uint16_t param_count );
-void Mavlink_Param_Set( void );
-void Mavlink_HIL_State( void );
-static bool Mavlink_Parse( void );
-bool Mavlink_Stream_Trigger( uint8_t stream );
+static          void Mavlink_Send( uint8_t crc_extra );
+                void Mavlink_Mission_Item_Get( void );
+                void Mavlink_Mission_Count_Send( void );
+                void Mavlink_Mission_Count_Get( void );
+                void Mavlink_Heartbeat( void );
+                void Mavlink_Hud( void );
+                void Mavlink_Attitude( void );
+                void Mavlink_Gps_Raw( void );
+                void Mavlink_Position( void );
+                void Mavlink_Param_Send( uint16_t param_index, uint16_t param_count );
+                void Mavlink_Param_Set( void );
+                void Mavlink_HIL_State( void );
+static          bool Mavlink_Parse( void );
+                bool Mavlink_Stream_Trigger( uint8_t stream );
 
 /*---------------------------------- Functions -------------------------------*/
 
@@ -688,26 +700,26 @@ static __inline void checksum_accumulate(uint8_t data)
  *
  *---------------------------------------------------------------------------*/
 static void Mavlink_Send( uint8_t crc_extra ) {
-     uint16_t j;
-    uint8_t length = uc_tx_msg[1];
+  uint16_t j;
+  uint8_t length = uc_tx_msg[1];
 
-    checksum_init();
-    uc_tx_msg[0] = MAVLINK_STX;
-    uc_tx_msg[2] = uc_current_tx_seq++; /* One sequence number per component */
-    uc_tx_msg[3] = uc_system_ID;
-    uc_tx_msg[4] = (uint8_t)e_component_ID;
+  checksum_init();
+  uc_tx_msg[0] =          MAVLINK_STX;
+  uc_tx_msg[2] =          uc_current_tx_seq++; /* One sequence number per component */
+  uc_tx_msg[3] =          uc_system_ID;
+  uc_tx_msg[4] = (uint8_t)e_component_ID;
 
-    for (j = 1; j < length + 6; j++) {
-        checksum_accumulate(uc_tx_msg[j]);
-    }
-    checksum_accumulate(crc_extra);
+  for (j = 1; j < length + 6; j++) {
+    checksum_accumulate(uc_tx_msg[j]);
+  }
+  checksum_accumulate(crc_extra);
 
-    uc_tx_msg[j++] = (uint8_t)(ui_crc & 0xFF);
-    uc_tx_msg[j] = (uint8_t)(ui_crc >> 8);
-    /*
-     *
-     */
-    chnWrite(&SD1, uc_tx_msg, length + 8);
+  uc_tx_msg[j++] = (uint8_t)(ui_crc & 0xFF);
+  uc_tx_msg[j  ] = (uint8_t)(ui_crc >> 8);
+  /*
+   *
+   */
+  chnWrite(&SD1, uc_tx_msg, length + 8);
 }
 
 /*----------------------------------------------------------------------------
@@ -729,22 +741,21 @@ static void Mavlink_Send( uint8_t crc_extra ) {
  * Base mode        6   uint8_t  System mode bitfield, see MAV_MODE_FLAGS ENUM
  * autopilot        ?   uint8_t  Autopilot type / class. see MAV_AUTOPILOT ENUM
  * system_status    ?   uint8_t  System status flag, see MAV_STATE ENUM
- * mavlink_version  ?   uint8_t_mavlink_version
- *                               MAVLink version, read only,
+ * mavlink_version  ?   uint8_t  MAVLink version, read only,
  *                               gets added by protocol because of magic data type
  *
  *---------------------------------------------------------------------------*/
 void Mavlink_Heartbeat( void ) {
-     uint16_t j;
+   uint16_t j;
 
-    for (j = 0; j < PACKET_LEN; j++) {
-        uc_tx_msg[j] = 0;
-    }
+  for (j = 0; j < PACKET_LEN; j++) {
+    uc_tx_msg[ j] = 0;
+  }
+  uc_tx_msg[ 1] = 9;                              /* Payload length */
+  uc_tx_msg[ 5] = MAVLINK_MSG_ID_HEARTBEAT;       /* Heartbeat message ID */
+  uc_tx_msg[10] = (uint8_t)MAV_TYPE_FIXED_WING;   /* Type of the MAV, defined in MAV_TYPE ENUM */
 
-    uc_tx_msg[1] = 9;                              /* Payload length */
-    uc_tx_msg[5] = MAVLINK_MSG_ID_HEARTBEAT;       /* Heartbeat message ID */
-    uc_tx_msg[10] = (uint8_t)MAV_TYPE_FIXED_WING;  /* Type of the MAV, defined in MAV_TYPE ENUM */
-    Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_HEARTBEAT]);
+  Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_HEARTBEAT]);
 }
 
 /*----------------------------------------------------------------------------
@@ -767,16 +778,16 @@ void Mavlink_Heartbeat( void ) {
  *---------------------------------------------------------------------------*/
 void Mavlink_Hud( void ) {
 
-    uc_tx_msg[1] = 20;                                          /* Payload length */
-    uc_tx_msg[5] = MAVLINK_MSG_ID_VFR_HUD;                      /* VFR HUD message ID */
-    *((float *)(&uc_tx_msg[6])) = 0.0f;                         /* Airspeed */
-    *((float *)(&uc_tx_msg[10])) = (float)Gps_Speed_Kt();       /* GPS speed */
-    *((float *)(&uc_tx_msg[14])) = (float)Get_Baro_Altitude();  /* Altitude */
-    *((float *)(&uc_tx_msg[18])) = 0.0f;                        /* Climb rate */
-    *((uint16_t *)(&uc_tx_msg[22])) = Gps_COG_Deg();            /* Heading */
-    *((int16_t *)(&uc_tx_msg[24])) = Get_Servo(SERVO_THROTTLE); /* Throttle */
+                  uc_tx_msg[ 1]   = 20;                         /* Payload length */
+                  uc_tx_msg[ 5]   = MAVLINK_MSG_ID_VFR_HUD;     /* VFR HUD message ID */
+  *((float    *)(&uc_tx_msg[ 6])) = 0.0f;                       /* Airspeed */
+  *((float    *)(&uc_tx_msg[10])) = (float)Gps_Speed_Kt();      /* GPS speed */
+  *((float    *)(&uc_tx_msg[14])) = (float)Get_Baro_Altitude(); /* Altitude */
+  *((float    *)(&uc_tx_msg[18])) = 0.0f;                       /* Climb rate */
+  *((uint16_t *)(&uc_tx_msg[22])) = Gps_COG_Deg();              /* Heading */
+  *((int16_t  *)(&uc_tx_msg[24])) = Get_Servo(SERVO_THROTTLE);  /* Throttle */
 
-    Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_VFR_HUD]);
+  Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_VFR_HUD]);
 }
 
 /*----------------------------------------------------------------------------
@@ -787,28 +798,28 @@ void Mavlink_Hud( void ) {
  * @remarks
  * Name = MAVLINK_MSG_ID_ATTITUDE, ID = 30, Length = 28
  *
- * Field        Offset Type     Meaning
+ * Field      Offset Type     Meaning
  * -------------------------------------
- * time_boot_ms  0     uint32_t
- * roll          4     float
- * pitch         8     float
- * yaw          12     float
- * rollspeed    16     float
- * pitchspeed   20     float
- * yawspeed     24     float
+ * time_boot_ms  0   uint32_t 
+ * roll          4   float
+ * pitch         8   float
+ * yaw          12   float
+ * rollspeed    16   float
+ * pitchspeed   20   float
+ * yawspeed     24   float
  *
  *---------------------------------------------------------------------------*/
 void Mavlink_Attitude( void ) {
 
-    uc_tx_msg[1] = 28;                                /* Payload length */
-    uc_tx_msg[5] = MAVLINK_MSG_ID_ATTITUDE;           /* Attitude message ID */
-    *((uint32_t *)(&uc_tx_msg[6])) = 0;               /* time from boot [ms] */
-    *((float *)(&uc_tx_msg[10])) = AHRS_Roll_Rad();   /* roll */
-    *((float *)(&uc_tx_msg[14])) = AHRS_Pitch_Rad();  /* pitch */
-    *((float *)(&uc_tx_msg[18])) = AHRS_Yaw_Rad();    /* yaw */
-    *((float *)(&uc_tx_msg[22])) = 0.0f;              /* roll rate */
-    *((float *)(&uc_tx_msg[26])) = 0.0f;              /* pitch rate */
-    *((float *)(&uc_tx_msg[30])) = 0.0f;              /* yaw rate */
+                   uc_tx_msg[ 1]   = 28;                      /* Payload length */
+                   uc_tx_msg[ 5]   = MAVLINK_MSG_ID_ATTITUDE; /* Attitude message ID */
+   *((uint32_t *)(&uc_tx_msg[ 6])) = 0;                       /* time from boot [ms] */
+   *((float    *)(&uc_tx_msg[10])) = AHRS_Roll_Rad();         /* roll */
+   *((float    *)(&uc_tx_msg[14])) = AHRS_Pitch_Rad();        /* pitch */
+   *((float    *)(&uc_tx_msg[18])) = AHRS_Yaw_Rad();          /* yaw */
+   *((float    *)(&uc_tx_msg[22])) = 0.0f;                    /* roll rate */
+   *((float    *)(&uc_tx_msg[26])) = 0.0f;                    /* pitch rate */
+   *((float    *)(&uc_tx_msg[30])) = 0.0f;                    /* yaw rate */
 
     Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_ATTITUDE]);
 }
@@ -837,22 +848,20 @@ void Mavlink_Attitude( void ) {
  *---------------------------------------------------------------------------*/
 void Mavlink_Gps_Raw( void ) {
 
-    uc_tx_msg[1] = 30;                                      /* Payload length */
-    uc_tx_msg[5] = MAVLINK_MSG_ID_GPS_RAW_INT;              /* GPS message ID */
-    *((uint64_t *)(&uc_tx_msg[6])) = 0;                     /* time from boot [us] */
-                                                            /* latitude */
-    *((int32_t *)(&uc_tx_msg[14])) = (int32_t)(10000000.0f * Gps_Latitude());
-                                                            /* longitude */
-    *((int32_t *)(&uc_tx_msg[18])) = (int32_t)(10000000.0f * Gps_Longitude());
-    *((int32_t *)(&uc_tx_msg[22])) = Get_Baro_Altitude();   /* altitude */
-    *((uint16_t *)(&uc_tx_msg[26])) = 65535;                /* eph */
-    *((uint16_t *)(&uc_tx_msg[28])) = 65535;                /* epv */
-    *((uint16_t *)(&uc_tx_msg[30])) = Gps_Speed_Kt();       /* velocity */
-    *((uint16_t *)(&uc_tx_msg[32])) = Gps_COG_Deg();        /* course over ground */
-    uc_tx_msg[34] = Gps_Status();                           /* fix type */
-    uc_tx_msg[35] = 255;                                    /* satellites */
+                  uc_tx_msg[ 1]   = 30;                                       /* Payload length */
+                  uc_tx_msg[ 5]   = MAVLINK_MSG_ID_GPS_RAW_INT;               /* GPS message ID */
+  *((uint64_t *)(&uc_tx_msg[ 6])) = 0;                                        /* time from boot [us] */
+  *((int32_t  *)(&uc_tx_msg[14])) = (int32_t)(10000000.0f * Gps_Latitude());  /* latitude */
+  *((int32_t  *)(&uc_tx_msg[18])) = (int32_t)(10000000.0f * Gps_Longitude()); /* longitude */
+  *((int32_t  *)(&uc_tx_msg[22])) = Get_Baro_Altitude();                      /* altitude */
+  *((uint16_t *)(&uc_tx_msg[26])) = 65535;                                    /* eph */
+  *((uint16_t *)(&uc_tx_msg[28])) = 65535;                                    /* epv */
+  *((uint16_t *)(&uc_tx_msg[30])) = Gps_Speed_Kt();                           /* velocity */
+  *((uint16_t *)(&uc_tx_msg[32])) = Gps_COG_Deg();                            /* course over ground */
+                  uc_tx_msg[34]   = Gps_Status();                             /* fix type */
+                  uc_tx_msg[35]   = 255;                                      /* satellites */
 
-    Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_GPS_RAW_INT]);
+  Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_GPS_RAW_INT]);
 }
 
 /*----------------------------------------------------------------------------
@@ -878,21 +887,19 @@ void Mavlink_Gps_Raw( void ) {
  *---------------------------------------------------------------------------*/
 void Mavlink_Position( void ) {
 
-    uc_tx_msg[1] = 28;                                      /* payload length */
-    uc_tx_msg[5] = MAVLINK_MSG_ID_GLOBAL_POSITION_INT;      /* global position message ID */
-    *((uint32_t *)(&uc_tx_msg[6])) = 0;                     /* time from boot [ms] */
-                                                            /* latitude */
-    *(( int32_t *)(&uc_tx_msg[10])) = (int32_t)(10000000.0f * Gps_Latitude());
-                                                            /* longitude */
-    *(( int32_t *)(&uc_tx_msg[14])) = (int32_t)(10000000.0f * Gps_Longitude());
-    *(( int32_t *)(&uc_tx_msg[18])) = Get_Baro_Altitude();  /* altitude */
-    *(( int32_t *)(&uc_tx_msg[22])) = Get_Baro_Altitude();  /* altitude above ground */
-    *((uint16_t *)(&uc_tx_msg[26])) = 0;                    /* ground x speed */
-    *((uint16_t *)(&uc_tx_msg[28])) = 0;                    /* ground y speed */
-    *((uint16_t *)(&uc_tx_msg[30])) = 0;                    /* ground z speed */
-    *((uint16_t *)(&uc_tx_msg[32])) = Gps_COG_Deg();        /* replace with compass heading */
+                  uc_tx_msg[ 1]   = 28;                                       /* payload length */
+                  uc_tx_msg[ 5]   = MAVLINK_MSG_ID_GLOBAL_POSITION_INT;       /* global position message ID */
+  *((uint32_t *)(&uc_tx_msg[ 6])) = 0;                                        /* time from boot [ms] */
+  *(( int32_t *)(&uc_tx_msg[10])) = (int32_t)(10000000.0f * Gps_Latitude());  /* latitude */
+  *(( int32_t *)(&uc_tx_msg[14])) = (int32_t)(10000000.0f * Gps_Longitude()); /* longitude */
+  *(( int32_t *)(&uc_tx_msg[18])) = Get_Baro_Altitude();                      /* altitude */
+  *(( int32_t *)(&uc_tx_msg[22])) = Get_Baro_Altitude();                      /* altitude above ground */
+  *((uint16_t *)(&uc_tx_msg[26])) = 0;                                        /* ground x speed */
+  *((uint16_t *)(&uc_tx_msg[28])) = 0;                                        /* ground y speed */
+  *((uint16_t *)(&uc_tx_msg[30])) = 0;                                        /* ground z speed */
+  *((uint16_t *)(&uc_tx_msg[32])) = Gps_COG_Deg();                            /* replace with compass heading */
 
-    Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_GLOBAL_POSITION_INT]);
+  Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_GLOBAL_POSITION_INT]);
 }
 
 /*----------------------------------------------------------------------------
@@ -914,19 +921,18 @@ void Mavlink_Position( void ) {
  *---------------------------------------------------------------------------*/
 void Mavlink_Param_Send( uint16_t param_index, uint16_t param_count ) {
 
-    uint8_t j;
+  uint8_t j;
+                  uc_tx_msg[     1]   = 25;                               /* Payload length */
+                  uc_tx_msg[     5]   = MAVLINK_MSG_ID_PARAM_VALUE;       /* Parameter value message ID */
+  *((float    *)(&uc_tx_msg[     6])) = f_param_value[param_index];       /* Parameter value */
+  *((uint16_t *)(&uc_tx_msg[    10])) = param_count;                      /* Total number of parameters */
+  *((uint16_t *)(&uc_tx_msg[    12])) = param_index;                      /* Parameter index */
+  for (j = 0; j < 16; j++) {
+                  uc_tx_msg[j + 14]   = s_parameter_name[param_index][j]; /* Parameter name */
+  }
+                  uc_tx_msg[    30]   = (uint8_t)MAVLINK_TYPE_FLOAT;      /* Parameter type */
 
-    uc_tx_msg[1] = 25;                                        /* Payload length */
-    uc_tx_msg[5] = MAVLINK_MSG_ID_PARAM_VALUE;                /* Parameter value message ID */
-    *((float *)(&uc_tx_msg[6])) = f_param_value[param_index]; /* Parameter value */
-    *((uint16_t *)(&uc_tx_msg[10])) = param_count;            /* Total number of parameters */
-    *((uint16_t *)(&uc_tx_msg[12])) = param_index;            /* Parameter index */
-    for (j = 0; j < 16; j++) {
-        uc_tx_msg[j + 14] = s_parameter_name[param_index][j]; /* Parameter name */
-    }
-    uc_tx_msg[30] = (uint8_t)MAVLINK_TYPE_FLOAT;              /* Parameter type */
-
-    Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_PARAM_VALUE]);
+  Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_PARAM_VALUE]);
 }
 
 /*----------------------------------------------------------------------------
@@ -956,7 +962,7 @@ void Mavlink_Param_Set( void ) {
 
   f_value = *(float *)(&uc_rx_msg[0]);
   if ((uc_rx_msg[4] == uc_system_ID) &&                     /* message is for this system */
-    (uc_rx_msg[5] == e_component_ID)) {                     /* message is for this component */
+      (uc_rx_msg[5] == e_component_ID)) {                   /* message is for this component */
     for (i = 0; i < ONBOARD_PARAM_COUNT; i++) {
       match = TRUE;
       for (j = 0; j < ONBOARD_PARAM_NAME_LENGTH; j++) {
@@ -1010,15 +1016,15 @@ void Mavlink_Param_Set( void ) {
  *---------------------------------------------------------------------------*/
 void Mavlink_HIL_State( void ) {
 #if (0)
-    rollspeed  = *((float *)(&uc_tx_msg[26]));    /*  */
-    pitchspeed = *((float *)(&uc_tx_msg[30]));    /*  */
-    yawspeed   = *((float *)(&uc_tx_msg[34]));    /*  */
-    lat = *((int32_t *)(&uc_tx_msg[38]));         /*  */
-    lon = *((int32_t *)(&uc_tx_msg[42]));         /*  */
-    alt = *((int32_t *)(&uc_tx_msg[46]));         /*  */
-    xacc = *((int16_t *)(&uc_tx_msg[56]));        /*  */
-    yacc = *((int16_t *)(&uc_tx_msg[58]));        /*  */
-    zacc = *((int16_t *)(&uc_tx_msg[60]));        /*  */
+     rollspeed = *((float   *)(&uc_tx_msg[26]));    /*  */
+    pitchspeed = *((float   *)(&uc_tx_msg[30]));    /*  */
+      yawspeed = *((float   *)(&uc_tx_msg[34]));    /*  */
+           lat = *((int32_t *)(&uc_tx_msg[38]));    /*  */
+           lon = *((int32_t *)(&uc_tx_msg[42]));    /*  */
+           alt = *((int32_t *)(&uc_tx_msg[46]));    /*  */
+          xacc = *((int16_t *)(&uc_tx_msg[56]));    /*  */
+          yacc = *((int16_t *)(&uc_tx_msg[58]));    /*  */
+          zacc = *((int16_t *)(&uc_tx_msg[60]));    /*  */
 #endif
 }
 
@@ -1109,35 +1115,63 @@ void Mavlink_HIL_State( void ) {
  * @remarks
  * Name = MAVLINK_MSG_ID_MISSION_COUNT, ID = 44, Length = 4
  *
- * Field         Offset Type   Meaning
+ * Field       Offset Type     Meaning
  * ----------------------------------------------------------------------
  * count            0 uint16_t number of waypoints
  * target_system    2 uint8_t  target requested to send the stream
  * target_component 3 uint8_t  component requested to send the stream
  *
  *---------------------------------------------------------------------------*/
-void Mavlink_Mission_Count( void ) {
+void Mavlink_Mission_Count_Send( void ) {
 
-    if ((uc_rx_msg[0] == uc_system_ID) &&                  /* message is for this system */
-        (uc_rx_msg[1] == e_component_ID)) {                /* message is for this component */
-        uc_tx_msg[1] = 4;                                  /* payload length */
-        uc_tx_msg[5] = MAVLINK_MSG_ID_MISSION_COUNT;       /* mission count message ID */
-        *((uint16_t *)(&uc_tx_msg[6])) = Nav_Wpt_Number(); /* number of waypoints */
+  if ((uc_rx_msg[0] == uc_system_ID) &&     /* message is for this system */
+      (uc_rx_msg[1] == e_component_ID)) {   /* message is for this component */
 
-        Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_MISSION_COUNT]);
-    }
+                    uc_tx_msg[1]   = 4;                             /* payload length */
+                    uc_tx_msg[5]   = MAVLINK_MSG_ID_MISSION_COUNT;  /* mission count message ID */
+    *((uint16_t *)(&uc_tx_msg[6])) = Nav_Wpt_Number();              /* number of waypoints */
+
+    Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_MISSION_COUNT]);
+  }
 }
 
 /*----------------------------------------------------------------------------
  *
+ * @brief   Start receiving mission waypoints
+ * @param   -
+ * @returns -
+ * @remarks
+ * Name = MAVLINK_MSG_ID_MISSION_COUNT, ID = 44, Length = 4
+ *
+ * Field       Offset Type     Meaning
+ * ----------------------------------------------------------------------
+ * count            0 uint16_t number of waypoints
+ * target_system    2 uint8_t  target requested to send the stream
+ * target_component 3 uint8_t  component requested to send the stream
+ *
+ *---------------------------------------------------------------------------*/
+void Mavlink_Mission_Count_Get( void ) {
+
+  if ((uc_rx_msg[0] == uc_system_ID) &&     /* message is for this system */
+      (uc_rx_msg[1] == e_component_ID)) {   /* message is for this component */
+    ui_wpt_get_index = 0;                               /* clear waypoint counter */
+    ui_wpt_get_last  = 0;                               /* clear last waypoint number */
+    b_wpt_receiving  = TRUE;                            /* we're receiving mission wpts */
+    ui_wpt_get_total = *((uint16_t *)(&uc_tx_msg[2]));  /* number of waypoints */
+  }
+}
+
+
+/*----------------------------------------------------------------------------
+ *
  * @brief   Send waypoint data
- * @param   wpt_index = index of waypoint to be sent
- * @param   wpt_count = total number of waypoint
+ * @param   -
+ * @param   -
  * @returns -
  * @remarks
  * Name = MAVLINK_MSG_ID_MISSION_ITEM, ID = 39, Length = 37
  *
- * Field       Offset  Type     Meaning
+ * Field        Offset Type     Meaning
  * --------------------------------------------------------------------
  * param1            0 float    acceptance radius
  * param2            4 float    permanence time
@@ -1155,34 +1189,117 @@ void Mavlink_Mission_Count( void ) {
  * auto_continue    36 uint8_t  autocontinue to next wp
  *
  *---------------------------------------------------------------------------*/
-void Mavlink_Mission_Item( void ) {
+void Mavlink_Mission_Item_Send( void ) {
 
-    uint16_t index;
+  uint16_t index;
 
-    if ((uc_rx_msg[2] == uc_system_ID) &&               /* message is for this system */
-        (uc_rx_msg[3] == e_component_ID)) {             /* message is for this component */
+  if ((uc_rx_msg[2] == uc_system_ID) &&     /* message is for this system */
+      (uc_rx_msg[3] == e_component_ID)) {   /* message is for this component */
 
-        index = *((uint16_t *)(&uc_rx_msg[0]));                    /* get waypoint index */
-        Nav_Wpt_Get(index, &wpt);                                  /* get waypoint data */
-        uc_tx_msg[1] = 37;                                         /* payload length */
-        uc_tx_msg[5] = MAVLINK_MSG_ID_MISSION_ITEM;                /* message ID */
-        *((float    *)(&uc_tx_msg[ 6])) = 100.0f;                  /* radius */
-        *((float    *)(&uc_tx_msg[10])) =   0.0f;                  /* time */
-        *((float    *)(&uc_tx_msg[14])) =   0.0f;                  /* orbit */
-        *((float    *)(&uc_tx_msg[18])) =   0.0f;                  /* yaw */
-        *((float    *)(&uc_tx_msg[22])) = wpt.lat;                 /* latitude */
-        *((float    *)(&uc_tx_msg[26])) = wpt.lon;                 /* longitude */
-        *((float    *)(&uc_tx_msg[30])) = wpt.alt;                 /* altitude */
-        *((uint16_t *)(&uc_tx_msg[34])) = index;                   /* sequence */
-        *((uint16_t *)(&uc_tx_msg[36])) = (uint8_t)MAV_CMD_NAV_WAYPOINT; /* command */
-                          uc_tx_msg[38] = 1;                       /* target sys */
-                          uc_tx_msg[39] = 1;                       /* target comp */
-                          uc_tx_msg[40] = (uint8_t)MAV_FRAME_GLOBAL; /* frame */
-                          uc_tx_msg[41] = 0;                       /* current */
-                          uc_tx_msg[42] = 1;                       /* auto continue */
+    index = *((uint16_t *)(&uc_rx_msg[0])); /* get waypoint index */
+    Nav_Wpt_Get(index, &wpt);               /* get waypoint data */
 
-        Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_MISSION_ITEM]);
-    }
+                    uc_tx_msg[ 1]   = 37;                           /* payload length */
+                    uc_tx_msg[ 5]   = MAVLINK_MSG_ID_MISSION_ITEM;  /* message ID */
+    *((float    *)(&uc_tx_msg[ 6])) = 100.0f;                       /* radius */
+    *((float    *)(&uc_tx_msg[10])) =   0.0f;                       /* time */
+    *((float    *)(&uc_tx_msg[14])) =   0.0f;                       /* orbit */
+    *((float    *)(&uc_tx_msg[18])) =   0.0f;                       /* yaw */
+    *((float    *)(&uc_tx_msg[22])) = wpt.lat;                      /* latitude */
+    *((float    *)(&uc_tx_msg[26])) = wpt.lon;                      /* longitude */
+    *((float    *)(&uc_tx_msg[30])) = wpt.alt;                      /* altitude */
+    *((uint16_t *)(&uc_tx_msg[34])) = index;                        /* sequence */
+    *((uint16_t *)(&uc_tx_msg[36])) = (uint8_t)MAV_CMD_NAV_WAYPOINT;/* command */
+                    uc_tx_msg[38]   = 1;                            /* target sys */
+                    uc_tx_msg[39]   = 1;                            /* target comp */
+                    uc_tx_msg[40]   = (uint8_t)MAV_FRAME_GLOBAL;    /* frame */
+                    uc_tx_msg[41]   = 0;                            /* current */
+                    uc_tx_msg[42]   = 1;                            /* auto continue */
+
+    Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_MISSION_ITEM]);
+  }
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * @brief   Receive waypoint data
+ * @param   -
+ * @param   -
+ * @returns -
+ * @remarks
+ * Name = MAVLINK_MSG_ID_MISSION_ITEM, ID = 39, Length = 37
+ *
+ * Field        Offset Type     Meaning
+ * --------------------------------------------------------------------
+ * param1            0 float    acceptance radius
+ * param2            4 float    permanence time
+ * param3            8 float    orbit direction
+ * param4           12 float    yaw orientation
+ * x                16 float    x position or latitude
+ * y                20 float    y position or longitude
+ * z                24 float    z position or altitude
+ * seq              28 uint16_t sequence
+ * command          30 uint16_t scheduled action
+ * target_system    32 uint8_t  target requested to send the stream
+ * target_component 33 uint8_t  component requested to send the stream
+ * frame            34 uint8_t  coordinate system
+ * current          35 uint8_t  false:0, true:1
+ * auto_continue    36 uint8_t  autocontinue to next wp
+ *
+ *---------------------------------------------------------------------------*/
+void Mavlink_Mission_Item_Get( void ) {
+
+  if ((   uc_rx_msg[2] == uc_system_ID) &&     /* message is for this system */
+      (   uc_rx_msg[3] == e_component_ID) &&   /* message is for this component */
+      (b_wpt_receiving == TRUE)) {             /* mission protocol in progress */
+#if(0)
+       wpt.radius = *((float    *)(&uc_tx_msg[ 6])); /* radius */
+         wpt.time = *((float    *)(&uc_tx_msg[10])); /* time */
+        wpt.orbit = *((float    *)(&uc_tx_msg[14])); /* orbit */
+          wpt.yaw = *((float    *)(&uc_tx_msg[18])); /* yaw */
+#endif
+          wpt.lat = *((float    *)(&uc_tx_msg[22])); /* latitude */
+          wpt.lon = *((float    *)(&uc_tx_msg[26])); /* longitude */
+          wpt.alt = *((float    *)(&uc_tx_msg[30])); /* altitude */
+ ui_wpt_get_index = *((uint16_t *)(&uc_tx_msg[34])); /* sequence */
+#if (0)
+          wpt.cmd = *((uint16_t *)(&uc_tx_msg[36])); /* command */
+       target_sys =                 uc_tx_msg[38];   /* target sys */
+      target_comp =                 uc_tx_msg[39];   /* target comp */
+        wpt.frame =                 uc_tx_msg[40];   /* frame */
+         wpt.curr =                 uc_tx_msg[41];   /* current */
+         wpt.cont =                 uc_tx_msg[42];   /* auto continue */
+#endif
+    Nav_Wpt_Set(ui_wpt_get_index, &wpt);             /* set waypoint data */
+  }
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * @brief   Request waypoint data
+ * @param   -
+ * @param   -
+ * @returns -
+ * @remarks
+ * Name = MAVLINK_MSG_ID_MISSION_REQUEST, ID = 40, Length = 4
+ *
+ * Field        Offset Type     Meaning
+ * --------------------------------------------------------------------
+ * target_system     uint8_t  target requested to send the stream
+ * target_component  uint8_t  component requested to send the stream
+ * seq               uint16_t sequence
+ *
+ *---------------------------------------------------------------------------*/
+void Mavlink_Wpt_Request( void ) {
+
+  if ((b_wpt_receiving == TRUE) &&
+      (ui_wpt_get_index < ui_wpt_get_total)) {
+                    uc_tx_msg[1]   = 4;                              /* payload length */
+                    uc_tx_msg[5]   = MAVLINK_MSG_ID_MISSION_REQUEST; /* mission request message ID */
+    *((uint16_t *)(&uc_tx_msg[6])) = ui_wpt_get_index;               /* waypoint index */
+
+    Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_MISSION_REQUEST]);
+  }
 }
 
 /*----------------------------------------------------------------------------
@@ -1339,44 +1456,48 @@ static bool Mavlink_Parse(void) {
  * @returns -
  * @remarks Handles packet value by calling the appropriate functions.
  *          See Ardupilot function handleMessage at following link:
- * https: *github.com/diydrones/ardupilot/blob/master/ArduPlane/GCS_Mavlink.pde
+ * https://github.com/diydrones/ardupilot/blob/master/ArduPlane/GCS_Mavlink.pde
  *
  *---------------------------------------------------------------------------*/
 void Mavlink_Receive(void)
 {
-    if (Mavlink_Parse()) {                          /* Received a correct packet */
-        switch (uc_msg_ID) {                        /* Handle message */
-            case MAVLINK_MSG_ID_HEARTBEAT:          /* E.g. read GCS heartbeat and
-                                                       go into comm lost mode if
-                                                       timer times out */
-                break;
-            case MAVLINK_MSG_ID_REQUEST_DATA_STREAM:
-                Mavlink_Data_Stream();
-                break;
-            case MAVLINK_MSG_ID_COMMAND_LONG:       /* */
-                break;
-            case MAVLINK_MSG_ID_PARAM_REQUEST_LIST: /* */
-                ui_parameter_i = 0;
-                break;
-            case MAVLINK_MSG_ID_PARAM_SET:          /* */
-                Mavlink_Param_Set();
-                break;
-            case MAVLINK_MSG_ID_PARAM_VALUE:        /* */
-                break;
-            case MAVLINK_MSG_ID_HIL_STATE:
-                Mavlink_HIL_State();
-                break;
-            case MAVLINK_MSG_ID_MISSION_REQUEST_LIST:
-                Mavlink_Mission_Count();
-                break;
-            case MAVLINK_MSG_ID_MISSION_REQUEST:
-                Mavlink_Mission_Item();
-                break;
-            default:                                /* Do nothing */
-                break;
-        }
-    }                                               /* */
-/*    packet_drops += packet_rx_drop_count; */      /* Update global packet drops counter */
+  if (Mavlink_Parse()) {                        /* Received a correct packet */
+    switch (uc_msg_ID) {                        /* Handle message */
+      case MAVLINK_MSG_ID_HEARTBEAT:            /* Read GCS heartbeat, go into comm lost if time out */					
+        break;
+      case MAVLINK_MSG_ID_REQUEST_DATA_STREAM:  /* Start sending data stream */
+        Mavlink_Data_Stream();
+        break;
+      case MAVLINK_MSG_ID_COMMAND_LONG:         /* */
+        break;
+      case MAVLINK_MSG_ID_PARAM_REQUEST_LIST:   /* Start sending parameter list */
+        ui_parameter_i = 0;
+        break;
+      case MAVLINK_MSG_ID_PARAM_SET:            /* Read parameter data and set it */
+        Mavlink_Param_Set();
+        break;
+      case MAVLINK_MSG_ID_PARAM_VALUE:          /* */
+        break;
+      case MAVLINK_MSG_ID_HIL_STATE:            /* Send HIL state */
+        Mavlink_HIL_State();
+        break;
+      case MAVLINK_MSG_ID_MISSION_REQUEST_LIST: /* Send total waypoint number */
+        Mavlink_Mission_Count_Send();
+        break;
+      case MAVLINK_MSG_ID_MISSION_REQUEST:      /* Send data of specific waypoint */
+        Mavlink_Mission_Item_Send();
+        break;
+      case MAVLINK_MSG_ID_MISSION_COUNT:        /* Start receiving mission waypoints */
+        Mavlink_Mission_Count_Get();
+        break;
+      case MAVLINK_MSG_ID_MISSION_ITEM:         /* Read waypoint data and set it */
+        Mavlink_Mission_Item_Get();
+        break;
+      default:                                  /* Do nothing */
+        break;
+    }
+  }                                             /* */
+/*  packet_drops += packet_rx_drop_count; */      /* Update global packet drops counter */
 }
 
 /*----------------------------------------------------------------------------
@@ -1397,28 +1518,17 @@ void Mavlink_Queued_Send ( void ) {
   static uint8_t uc_send_period = 0;
 
   if ((uc_send_period % 10) == 0) {             /* @ 5 Hz       */
-    /*
-     * there are parameters to be sent
-     */
-    if (ui_parameter_i < ONBOARD_PARAM_COUNT) {
-    /*
-     * send parameters
-     */
-      Mavlink_Param_Send(ui_parameter_i++, ONBOARD_PARAM_COUNT);
+    Mavlink_Wpt_Request();                      /* request next mission waypoint */
+    if (ui_parameter_i < ONBOARD_PARAM_COUNT) { /* there are parameters to be sent */
+      Mavlink_Param_Send(ui_parameter_i++, 
+                         ONBOARD_PARAM_COUNT);  /* send parameters */
     }
   } else if ((uc_send_period % 50) == 0) {      /* @ 1 Hz       */
-    /*
-     * send heartbeat
-     */
-    Mavlink_Heartbeat();
+    Mavlink_Heartbeat();                        /* send heartbeat */
   } else if ((uc_send_period % 200) == 0) {     /* @ 0.25 Hz    */
-    /*
-     * do something at 0.25 Hz
-     */
+                                                /* do something at 0.25 Hz */
   } else {                                      /* @ 50 Hz      */
-    /*
-     * do something at 50 Hz
-     */
+                                                /* do something at 50 Hz */
   }
   if (++uc_send_period > 200) {
     uc_send_period = 0;
@@ -1606,5 +1716,4 @@ float Telemetry_Get_Altitude(void)
 {
     return 0.0f;    /* fAltitude; */
 }
-
 
