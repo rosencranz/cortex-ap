@@ -9,8 +9,7 @@
  *
  * @file
  *
- *  Change: sparse LED management replaced by Led_Handler() function
- *          function Init_Log() renamed Log_Init()
+ *  Change: added function Nav_Store_Waypoints() to Navigation task  
  *
  *============================================================================*/
 
@@ -200,7 +199,6 @@ static WORKING_AREA(wa_Nav_Thread, 320);
 static msg_t Nav_Thread(void *arg) {
   EventListener elGPSdata;
   flagsmask_t flags;
-  uint8_t counter;
   chRegSetThreadName("Nav_Thread");
   (void)arg;
 
@@ -215,7 +213,7 @@ static msg_t Nav_Thread(void *arg) {
         GPS_Parse();
      }
      Navigation();
-
+     Nav_Store_Waypoints();
   }
   return 0;
 }
