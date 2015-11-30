@@ -36,7 +36,10 @@
  *     Distance = sqrt(Delta Lon ^ 2 + Delta Lat ^ 2) * 111320
  * \endcode
  *
- * Change: added functions Nav_Store_Waypoints() and print_waypoint()
+ * Change: function Nav_Store_Waypoints() now stores only if mission modified, 
+ *         corrected starting waypoint number and conditions of while loop
+ *         function Nav_Wpt_Set() sets mission modified flag
+ *         function print_waypoint(): corrected parameter name
  *
  *============================================================================*/
 
@@ -95,6 +98,7 @@ static       float      f_dest_lon    = 0.0f;           /* destination longitude
 static       float      f_dest_alt    = 0.0f;           /* destination altitude */
 static       float      f_bearing     = 0.0f;           /* angle to destination [°] */
 static       bool       b_home        = FALSE;          /* home position saved */
+static       bool       b_modified    = FALSE;          /* mission moodified by GCS */
 
 /*--------------------------------- Prototypes -------------------------------*/
 
@@ -247,19 +251,24 @@ void Nav_Load_Waypoints( void ) {
  *----------------------------------------------------------------------------*/
 void Nav_Store_Waypoints( void ) {
 
-    uint8_t * psz_line;     /* pointer to line read */
-    uint16_t ui_wpt_counter; /* waypoint counter */
-    bool_t b_error;         /* file read error */
-    bool_t b_open;          /* file opened */
+    uint8_t * psz_line;         /* pointer to line read */
+    uint16_t ui_wpt_counter;    /* waypoint counter */
+    bool_t b_error;             /* file read error */
+    bool_t b_open;              /* file opened */
 
+    if (!b_modified) {          /* mission hasn't been modified */
+       return;
+    }
+
+    b_modified = FALSE;
     b_open = FALSE;
     b_error = FALSE;
-    psz_line = sz_line;     /* init line pointer */
-    ui_wpt_counter = 0;
+    psz_line = sz_line;         /* init line pointer */
+    ui_wpt_counter = 1;
 
     /* Check file system and open waypoints file */
-    if ((!fs_ready) &&                                                      /* file system mounted */
-        (FR_OK != f_open(&file, (const TCHAR *)sz_wpt_file, FA_WRITE))) {   /* opening file */
+    if ((fs_ready) &&                                                       /* file system mounted */
+        (FR_OK == f_open(&file, (const TCHAR *)sz_wpt_file, FA_WRITE))) {   /* opening file */
         b_open = TRUE;                                                      /* file succesfully open */
 
     /* Write waypoint file */
@@ -378,7 +387,7 @@ static bool parse_waypoint ( const uint8_t * psz_line ) {
  *          [.[a]] is an optional decimal point with an optional decimal data
  *
  *----------------------------------------------------------------------------*/
-static void print_waypoint ( uint16_t wpt_num, uint8_t * psz_line ) {
+static void print_waypoint ( uint16_t ui_num, uint8_t * psz_line ) {
 
   float f_temp;                       /* temporary */
   float f_fract;                      /* fractional part */
@@ -388,9 +397,9 @@ static void print_waypoint ( uint16_t wpt_num, uint8_t * psz_line ) {
 
   do {    /* assign value and update field counter */
     switch ( uc_field++ ) {
-      case 0: f_temp = waypoint[ui_wpt_number  ].lon; break;
-      case 1: f_temp = waypoint[ui_wpt_number  ].lat; break;
-      case 2: f_temp = waypoint[ui_wpt_number++].alt; break;
+      case 0: f_temp = waypoint[ui_num].lon; break;
+      case 1: f_temp = waypoint[ui_num].lat; break;
+      case 2: f_temp = waypoint[ui_num].alt; break;
       default: break;
     }
 
@@ -441,10 +450,10 @@ uint16_t Nav_Wpt_Number_Get ( void ) {
  *----------------------------------------------------------------------------*/
 bool Nav_Wpt_Number_Set ( uint16_t num ) {
 
-  if (num < MAX_WAYPOINTS) {
+  if (num < MAX_WAYPOINTS) {            /* number fits storage */
     ui_wpt_number = num;
     return TRUE;
-  } else {
+  } else {                              /* number exceeds storage capability */
     ui_wpt_number = 0;
     return FALSE;
   }
@@ -506,6 +515,9 @@ void Nav_Wpt_Set ( uint16_t index, STRUCT_WPT * wpt ) {
     waypoint[index].lat = wpt->lat;
     waypoint[index].lon = wpt->lon;
     waypoint[index].alt = wpt->alt;
+  }
+  if (index == ui_wpt_number) {
+    b_modified = TRUE;
   }
 }
 
