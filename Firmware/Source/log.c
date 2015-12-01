@@ -9,7 +9,7 @@
  *
  * @file
  *
- * Change: function Init_Log() renamed Log_Init() 
+ * Change: variable "file" renamed "log_file" 
  *
  *============================================================================*/
 
@@ -41,7 +41,7 @@ extern bool_t fs_ready;
 /*----------------------------------- Locals ---------------------------------*/
 
 static uint8_t sz_log_file[10] = "log0.txt";    /* log file name */
-static FIL file;                                /* file structure */
+static FIL log_file;                            /* file structure */
 static UINT ui_written;                         /* counter of bytes written */
 static bool_t b_file_ok = FALSE;                /* log file succesfully open */
 static uint32_t ul_samples = 0;                 /* counter of samples written */
@@ -68,11 +68,11 @@ void Log_Init ( void ) {
   /* Search last log file, if any */
   for (j = 0; (j < 10) && b_found; j++) {
     sz_log_file[3] = '0' + j;               /* Append file number */
-    if (FR_OK == f_open(&file,
+    if (FR_OK == f_open(&log_file,
                         (const TCHAR *)sz_log_file,
                         FA_WRITE)) {
       b_found = TRUE;                       /* File exist */
-      (void)f_close(&file);                 /* Close file */
+      (void)f_close(&log_file);             /* Close file */
     } else {
       b_found = FALSE;                      /* File doesn't exist */
     }
@@ -80,7 +80,7 @@ void Log_Init ( void ) {
 
   /* Open new log file */
   if (!b_found) {                           /* File doesn't exist */
-    if (FR_OK == f_open(&file,
+    if (FR_OK == f_open(&log_file,
                         (const TCHAR *)sz_log_file,
                         FA_WRITE|FA_CREATE_ALWAYS)) {
       b_file_ok = TRUE;                     /* File succesfully open */
@@ -130,10 +130,10 @@ void Log_Write_Var ( uint8_t *data, uint8_t size ) {
 
   sz_string[j++] = ',';                         /* terminate line */
   if (b_file_ok) {                              /* file is open */
-    f_write(&file, sz_string, j, &ui_written);  /* write line */
+    f_write(&log_file, sz_string, j, &ui_written); /* write line */
     if ((j != ui_written) ||                    /* no file space */
         (ul_samples >= MAX_SAMPLES)) {          /* too many samples */
-      f_close(&file);                           /* close file */
+      f_close(&log_file);                       /* close file */
       b_file_ok = FALSE;                        /* halt logging */
     } else {                                    /* write successfull */
       ul_samples++;                             /* update sample counter */
@@ -152,9 +152,9 @@ void Log_Write_Var ( uint8_t *data, uint8_t size ) {
 void Log_Write_Ch ( uint8_t ch ) {
 
   if (b_file_ok) {                          /* file is open     */
-    f_write(&file, &ch, 1, &ui_written);    /* write character  */
+    f_write(&log_file, &ch, 1, &ui_written);/* write character  */
     if (1 != ui_written) {                  /* no file space    */
-      f_close(&file);                       /* close file       */
+      f_close(&log_file);                   /* close file       */
       b_file_ok = FALSE;                    /* halt logging     */
     } else {                                /* write successfull */
 
@@ -177,9 +177,9 @@ void Log_Write_Str ( uint8_t * psz_str, uint8_t uc_len ) {
   if (uc_len > 200) { uc_len = 200; }
 
   if (b_file_ok) {                                  /* file is open     */
-    f_write(&file, psz_str, uc_len, &ui_written);   /* write string     */
+    f_write(&log_file, psz_str, uc_len, &ui_written); /* write string     */
     if (uc_len != ui_written) {                     /* no file space    */
-      f_close(&file);                               /* close file       */
+      f_close(&log_file);                           /* close file       */
       b_file_ok = FALSE;                            /* halt logging     */
     } else {                                        /* write successfull */
 
