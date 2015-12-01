@@ -8,6 +8,8 @@
 / CAUTION! Do not forget to make clean the project after any changes to
 / the configuration options.
 /
+/ Changes: enabled multiple files (_FS_SHARE = 2)
+/
 /----------------------------------------------------------------------------*/
 #ifndef _FFCONF
 #define _FFCONF 6502	/* Revision ID */
@@ -185,7 +187,7 @@
 /      function must be added to the project. */
 
 
-#define	_FS_SHARE	0	/* 0:Disable or >=1:Enable */
+#define	_FS_SHARE	2	/* 0:Disable or >=1:Enable */
 /* To enable file shareing feature, set _FS_SHARE to 1 or greater. The value
    defines how many files can be opened simultaneously. */
 
