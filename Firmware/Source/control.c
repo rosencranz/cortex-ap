@@ -24,7 +24,7 @@
  * @todo
  * replace SERVO_NEUTRAL with RC command center position value
  *
- * Change: increased gear ratio constant for camera tilt
+ * Change: (temporarily) removed unused variable
  *
  *============================================================================*/
 
@@ -157,10 +157,10 @@ void Control_Init(void )
 void Control ( void ) {
 
     static uint8_t uc_old_mode = MODE_MANUAL;
+#if (0)
     float f_max_roll;
 
     /* update PID gains from telemetry */
-#if (0)
     Pitch_Pid.fKp = Get_Gain(TEL_PITCH_KP);
     Pitch_Pid.fKi = Get_Gain(TEL_PITCH_KI);
     Roll_Pid.fKp = Get_Gain(TEL_ROLL_KP);
@@ -168,8 +168,8 @@ void Control ( void ) {
     Nav_Pid.fKp = Get_Gain(TEL_NAV_KP);
     Nav_Pid.fKi = Get_Gain(TEL_NAV_KI);
     Nav_Pid.fGain = Get_Gain(TEL_NAV_BANK);
-#endif
     f_max_roll = Get_Gain(TEL_NAV_BANK);
+#endif
 
     /* update PID gains from RC auxiliary controls */
     Roll_Pid.fKp = (float)(Get_RC_Channel(KP_CHANNEL) - 1000) / 500.0f;
