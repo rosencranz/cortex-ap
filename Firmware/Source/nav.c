@@ -36,10 +36,8 @@
  *     Distance = sqrt(Delta Lon ^ 2 + Delta Lat ^ 2) * 111320
  * \endcode
  *
- * Change: function Nav_Store_Waypoints() now stores only if mission modified, 
- *         corrected starting waypoint number and conditions of while loop
- *         function Nav_Wpt_Set() sets mission modified flag
- *         function print_waypoint(): corrected parameter name
+ * Change: variable "file" renamed "nav_file"
+ *         function Nav_Wpt_Set(): modified check of last waypoint number
  *
  *============================================================================*/
 
@@ -84,7 +82,7 @@ static       uint8_t    uc_buffer[BUFFER_LENGTH];       /* file buffer */
 static       uint8_t    sz_line[LINE_LENGTH];           /* line */
 static       STRUCT_WPT waypoint[MAX_WAYPOINTS];        /* waypoints array */
 static const uint8_t    sz_wpt_file[16] = "path.txt";   /* waypoint file name */
-static       FIL        file;                           /* file structure */
+static       FIL        nav_file;                       /* file structure */
 static       UINT       w_bytes       = 0;              /* counter of file bytes */
 static       uint16_t   ui_distance   = 0;              /* distance to destination [m] */
 static       uint16_t   ui_wpt_number = 0;              /* total number of waypoints */
@@ -198,7 +196,7 @@ void Nav_Load_Waypoints( void ) {
     /* Check file system and open waypoints file */
     if (!fs_ready) {                                /* file system not mounted */
         ui_wpt_number = 0;                          /* no waypoint available */
-    } else if (FR_OK != f_open(&file, (const TCHAR *)sz_wpt_file, FA_READ)) {
+    } else if (FR_OK != f_open(&nav_file, (const TCHAR *)sz_wpt_file, FA_READ)) {
                                                     /* error opening file */
         ui_wpt_number = 0;                          /* no waypoint available */
     } else {                                        /* file system mounted and */
@@ -208,7 +206,7 @@ void Nav_Load_Waypoints( void ) {
 
     /* Read waypoint file */
     while ((!b_error) && (b_open) &&
-           (FR_OK == f_read(&file, uc_buffer, BUFFER_LENGTH, &w_bytes))) {
+           (FR_OK == f_read(&nav_file, uc_buffer, BUFFER_LENGTH, &w_bytes))) {
         b_open = (w_bytes != 0);                    /* force file closed if end of file */
         p_buffer = uc_buffer;                       /* init buffer pointer */
         while ((w_bytes != 0) && (!b_error)) {      /* buffer not empty and no error */
@@ -230,7 +228,7 @@ void Nav_Load_Waypoints( void ) {
             }
         }
     }
-    ( void )f_close( &file );                       /* close file */
+    ( void )f_close( &nav_file );                       /* close file */
 
     /* errors reading file */
     if (b_error) {
@@ -267,14 +265,14 @@ void Nav_Store_Waypoints( void ) {
     ui_wpt_counter = 1;
 
     /* Check file system and open waypoints file */
-    if ((fs_ready) &&                                                       /* file system mounted */
-        (FR_OK == f_open(&file, (const TCHAR *)sz_wpt_file, FA_WRITE))) {   /* opening file */
-        b_open = TRUE;                                                      /* file succesfully open */
+    if ((fs_ready) &&                                                         /* file system mounted */
+        (FR_OK == f_open(&nav_file, (const TCHAR *)sz_wpt_file, FA_WRITE))) { /* opening file */
+        b_open = TRUE;                                                        /* file succesfully open */
 
     /* Write waypoint file */
     do {
        print_waypoint(ui_wpt_counter++, psz_line);
-       if (FR_OK != f_write(&file, uc_buffer, BUFFER_LENGTH, &w_bytes)) {
+       if (FR_OK != f_write(&nav_file, uc_buffer, BUFFER_LENGTH, &w_bytes)) {
           b_error = TRUE;
        }
        b_open = (w_bytes != 0);                     /* force file closed if end of file */
@@ -282,7 +280,7 @@ void Nav_Store_Waypoints( void ) {
              (b_open) &&
              (ui_wpt_counter < ui_wpt_number));     /* init buffer pointer */
     }
-    ( void )f_close( &file );                       /* close file */
+    ( void )f_close( &nav_file );                   /* close file */
 
     /* errors reading file */
     if (b_error) {
@@ -516,7 +514,7 @@ void Nav_Wpt_Set ( uint16_t index, STRUCT_WPT * wpt ) {
     waypoint[index].lon = wpt->lon;
     waypoint[index].alt = wpt->alt;
   }
-  if (index == ui_wpt_number) {
+  if (index == ui_wpt_number - 1) {
     b_modified = TRUE;
   }
 }
