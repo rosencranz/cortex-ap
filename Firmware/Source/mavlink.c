@@ -156,9 +156,7 @@
  * MAVLINK message set
  * https://pixhawk.ethz.ch/mavlink/
  *
- * Change: added Mavlink_Mission_Ack() 
- *         added check of waypoint storage limit in Mavlink_Mission_Count_Get()
- *         completed function Mavlink_Mission_Item_Get() and corrected field offsets
+ * Change: where possible, variables declared as "const"
  *
  *============================================================================*/
 
@@ -622,7 +620,7 @@ static float f_param_value[ONBOARD_PARAM_COUNT] = {
 /*
  * Serial configuration structure.
  */
-static SerialConfig sdcfg = {
+static const SerialConfig sdcfg = {
   57600
 };
 
