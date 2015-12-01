@@ -9,7 +9,7 @@
  *
  * @file
  *
- *  Change: added function Nav_Store_Waypoints() to Navigation task  
+ *  Change: removed waiting loop inside log task (enabled multiple simultaneous files)
  *
  *============================================================================*/
 
@@ -121,11 +121,6 @@ static msg_t Log_Thread(void *arg) {
   (void)arg;
 
   /*
-   * wait until nav thread completes reading waypoint file
-   */
-  chThdSleepMilliseconds(1000);
-
-  /*
    * initialize log file
    */
   Log_Init();
@@ -156,8 +151,10 @@ static msg_t Log_Thread(void *arg) {
  *----------------------------------------------------------------------------*/
 static WORKING_AREA(wa_AHRS_Thread, 128);
 static msg_t AHRS_Thread(void *arg) {
+
   chRegSetThreadName("AHRS_Thread");
   (void)arg;
+
   while (TRUE) {
     chThdSleepMilliseconds(20);
     p_sensor_data = Request_IMU_Data();
@@ -177,14 +174,14 @@ static msg_t AHRS_Thread(void *arg) {
  *----------------------------------------------------------------------------*/
 static WORKING_AREA(wa_Baro_Thread, 128);
 static msg_t Baro_Thread(void *arg) {
+
   chRegSetThreadName("Baro_Thread");
   (void)arg;
+
   while (TRUE) {
     chThdSleepMilliseconds(300);
-
     Baro_Handler();
     Led_Handler();
-
   }
   return 0;
 }
@@ -199,6 +196,7 @@ static WORKING_AREA(wa_Nav_Thread, 320);
 static msg_t Nav_Thread(void *arg) {
   EventListener elGPSdata;
   flagsmask_t flags;
+
   chRegSetThreadName("Nav_Thread");
   (void)arg;
 
@@ -207,7 +205,6 @@ static msg_t Nav_Thread(void *arg) {
   chEvtRegisterMask((EventSource *)chnGetEventSource(&SD2), &elGPSdata, EVENT_MASK(1));
   while (TRUE) {
      (void)chEvtWaitOneTimeout(EVENT_MASK(1), MS2ST(500));
-
      flags = chEvtGetAndClearFlags(&elGPSdata);
      if (flags & CHN_INPUT_AVAILABLE) {
         GPS_Parse();
@@ -235,7 +232,7 @@ static msg_t Telemetry_Thread(void *arg) {
 
 #if (SIMULATOR != SIM_NONE)
 
-  while (1) {
+  while (TRUE) {
     chThdSleepMilliseconds(20);
     Simulator_Send_Controls();          /* update simulator controls */
     Simulator_Parse();                  /* parse simulator data */
@@ -336,7 +333,7 @@ int main(void) {
    * 0.409 < 0.756
    */
 
-  /* main loop that do nothing */
+  /* main loop that does nothing */
   while (TRUE) {
     chThdSleepMilliseconds(500);
   }
