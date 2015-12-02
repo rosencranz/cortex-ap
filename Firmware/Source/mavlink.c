@@ -156,7 +156,7 @@
  * MAVLINK message set
  * https://pixhawk.ethz.ch/mavlink/
  *
- * Change: where possible, variables declared as "const"
+ * Change: modified check of all waypoints received
  *
  *============================================================================*/
 
@@ -1304,7 +1304,7 @@ void Mavlink_Mission_Item_Get( void ) {
   }
   if (result == MAV_MISSION_ACCEPTED) {
     Nav_Wpt_Set(ui_wpt_get_index++, &wpt);          /* set waypoint data */
-    if (ui_wpt_get_index > ui_wpt_get_total) {      /* received all waypoints */
+    if (ui_wpt_get_index == ui_wpt_get_total) {     /* received all waypoints */
       b_wpt_receiving = FALSE;                      /* close mission protocol */
       Mavlink_Mission_Ack(result);
     }
