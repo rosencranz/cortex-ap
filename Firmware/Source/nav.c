@@ -36,8 +36,8 @@
  *     Distance = sqrt(Delta Lon ^ 2 + Delta Lat ^ 2) * 111320
  * \endcode
  *
- * Change: variable "file" renamed "nav_file"
- *         function Nav_Wpt_Set(): modified check of last waypoint number
+ * Change: function print_waypoint() returns line length 
+ *         function Nav_Store_Waypoints(): corrected file write
  *
  *============================================================================*/
 
@@ -100,8 +100,8 @@ static       bool       b_modified    = FALSE;          /* mission moodified by 
 
 /*--------------------------------- Prototypes -------------------------------*/
 
-static bool parse_waypoint ( const uint8_t * psz_line );
-static void print_waypoint ( uint16_t wpt_num, uint8_t * psz_line );
+static bool    parse_waypoint ( const uint8_t * psz_line );
+static uint8_t print_waypoint ( uint16_t wpt_num, uint8_t * psz_line );
 
 /*----------------------------------------------------------------------------
  *
@@ -196,7 +196,9 @@ void Nav_Load_Waypoints( void ) {
     /* Check file system and open waypoints file */
     if (!fs_ready) {                                /* file system not mounted */
         ui_wpt_number = 0;                          /* no waypoint available */
-    } else if (FR_OK != f_open(&nav_file, (const TCHAR *)sz_wpt_file, FA_READ)) {
+    } else if (FR_OK != f_open(&nav_file, 
+                               (const TCHAR *)sz_wpt_file, 
+                               FA_READ)) {
                                                     /* error opening file */
         ui_wpt_number = 0;                          /* no waypoint available */
     } else {                                        /* file system mounted and */
@@ -206,7 +208,10 @@ void Nav_Load_Waypoints( void ) {
 
     /* Read waypoint file */
     while ((!b_error) && (b_open) &&
-           (FR_OK == f_read(&nav_file, uc_buffer, BUFFER_LENGTH, &w_bytes))) {
+           (FR_OK == f_read(&nav_file, 
+                            uc_buffer, 
+                            BUFFER_LENGTH, 
+                            &w_bytes))) {
         b_open = (w_bytes != 0);                    /* force file closed if end of file */
         p_buffer = uc_buffer;                       /* init buffer pointer */
         while ((w_bytes != 0) && (!b_error)) {      /* buffer not empty and no error */
@@ -228,7 +233,7 @@ void Nav_Load_Waypoints( void ) {
             }
         }
     }
-    ( void )f_close( &nav_file );                       /* close file */
+    ( void )f_close( &nav_file );                   /* close file */
 
     /* errors reading file */
     if (b_error) {
@@ -249,46 +254,53 @@ void Nav_Load_Waypoints( void ) {
  *----------------------------------------------------------------------------*/
 void Nav_Store_Waypoints( void ) {
 
-    uint8_t * psz_line;         /* pointer to line read */
-    uint16_t ui_wpt_counter;    /* waypoint counter */
-    bool_t b_error;             /* file read error */
-    bool_t b_open;              /* file opened */
+  uint8_t * psz_line;         /* pointer to line read */
+  uint16_t ui_wpt_counter;    /* waypoint counter */
+  bool_t b_error;             /* file read error */
+  bool_t b_open;              /* file opened */
+  uint8_t length;             /* line length */
 
-    if (!b_modified) {          /* mission hasn't been modified */
-       return;
-    }
+  if (!b_modified) {          /* mission hasn't been modified */
+     return;
+  }
 
-    b_modified = FALSE;
-    b_open = FALSE;
-    b_error = FALSE;
-    psz_line = sz_line;         /* init line pointer */
-    ui_wpt_counter = 1;
+  b_modified = FALSE;
+  b_open = FALSE;
+  b_error = FALSE;
+  psz_line = sz_line;         /* init line pointer */
+  ui_wpt_counter = 1;
 
-    /* Check file system and open waypoints file */
-    if ((fs_ready) &&                                                         /* file system mounted */
-        (FR_OK == f_open(&nav_file, (const TCHAR *)sz_wpt_file, FA_WRITE))) { /* opening file */
-        b_open = TRUE;                                                        /* file succesfully open */
+  /* Check file system and open waypoints file */
+  if ((fs_ready) &&                               /* file system mounted */
+      (FR_OK == f_open(&nav_file,                 /* opening file */
+                       (const TCHAR *)sz_wpt_file, 
+                       FA_WRITE|FA_CREATE_ALWAYS))) {
+    b_open = TRUE;                                /* file succesfully open */
 
-    /* Write waypoint file */
+  /* Write waypoint file */
     do {
-       print_waypoint(ui_wpt_counter++, psz_line);
-       if (FR_OK != f_write(&nav_file, uc_buffer, BUFFER_LENGTH, &w_bytes)) {
-          b_error = TRUE;
-       }
-       b_open = (w_bytes != 0);                     /* force file closed if end of file */
+      length = print_waypoint(ui_wpt_counter++, 
+                              psz_line);
+      if (FR_OK != f_write(&nav_file, 
+                           psz_line, 
+                           length, 
+                           &w_bytes)) {
+         b_error = TRUE;
+      }
+      b_open = (w_bytes != 0);                    /* force file closed if end of file */
     } while ((!b_error) && 
-             (b_open) &&
-             (ui_wpt_counter < ui_wpt_number));     /* init buffer pointer */
-    }
-    ( void )f_close( &nav_file );                   /* close file */
+              (b_open) &&
+              (ui_wpt_counter < ui_wpt_number));  /* init buffer pointer */
+  }
+  ( void )f_close( &nav_file );                   /* close file */
 
-    /* errors reading file */
-    if (b_error) {
-        ui_wpt_number = 0;                          /* no waypoint available */
-        ui_wpt_index = 0;                           /* use launch position */
-    } else {                                        /* no waypoint file */
-        ui_wpt_index = 1;                           /* start with first waypoint */
-    }
+  /* errors reading file */
+  if (b_error) {
+    ui_wpt_number = 0;                            /* no waypoint available */
+    ui_wpt_index = 0;                             /* use launch position */
+  } else {                                        /* no waypoint file */
+    ui_wpt_index = 1;                             /* start with first waypoint */
+  }
 }
 
 /*----------------------------------------------------------------------------
@@ -359,8 +371,8 @@ static bool parse_waypoint ( const uint8_t * psz_line ) {
     }
     /* assign value and update field counter */
     switch ( uc_field++ ) {
-      case 0: waypoint[ui_wpt_number].lon = f_temp; break;
-      case 1: waypoint[ui_wpt_number].lat = f_temp; break;
+      case 0: waypoint[ui_wpt_number  ].lon = f_temp; break;
+      case 1: waypoint[ui_wpt_number  ].lat = f_temp; break;
       case 2: waypoint[ui_wpt_number++].alt = f_temp; break;
       default: break;
     }
@@ -371,7 +383,7 @@ static bool parse_waypoint ( const uint8_t * psz_line ) {
 /*----------------------------------------------------------------------------
  *
  * @brief   Print waypoint coordinates into string
- * @return  -
+ * @return  string length
  * @remarks format of waypoint coordinate is:
  *
  *          xx.xxxxxx,[ ]yy.yyyyyy,[ ]aaa[.[a]]\0
@@ -385,12 +397,13 @@ static bool parse_waypoint ( const uint8_t * psz_line ) {
  *          [.[a]] is an optional decimal point with an optional decimal data
  *
  *----------------------------------------------------------------------------*/
-static void print_waypoint ( uint16_t ui_num, uint8_t * psz_line ) {
+static uint8_t print_waypoint ( uint16_t ui_num, uint8_t * psz_line ) {
 
   float f_temp;                       /* temporary */
   float f_fract;                      /* fractional part */
   int16_t i_whole;                    /* whole part */
-  uint8_t j;                          /*  */
+  uint8_t i = 0;
+  uint8_t j = 0;                      /*  */
   uint8_t uc_field = 0;               /* field counter (lat, lon, alt) */
 
   do {    /* assign value and update field counter */
@@ -402,29 +415,36 @@ static void print_waypoint ( uint16_t ui_num, uint8_t * psz_line ) {
     }
 
     *psz_line++ = ' ';                  /* leading space */
+    i++;                                /* count characters */
     i_whole = (int16_t)f_temp;          /* whole part */
-    f_fract = f_temp - (float)i_whole;    /* fractional part */
+    f_fract = f_temp - (float)i_whole;  /* fractional part */
     while (i_whole > 0) {
        *psz_line++ = '0' + (i_whole % 10);
+       i++;                             /* count characters */
        i_whole = i_whole / 10;
     }
 
     *psz_line++ = '.';                  /* decimal point */
-   
+    i++;                                /* count characters */
+
     for (j = 1; j < 6; j++) {           /* precision is 6 digits after decimal point */
         f_fract = f_fract * 10.0f;
         f_temp = floor(f_fract);
         *psz_line++ = '0' + (uint8_t)f_temp;
+        i++;                            /* count characters */
         f_fract = f_fract - f_temp;
     }
     if (uc_field < 2) {
         *psz_line++ = ',';              /* separate fields with comma */
+        i++;                            /* count characters */
     } else {
         *psz_line++ = '\n';             /* new line */
+        i++;                            /* count characters */
     }
   } while ( uc_field < 3 );
-}
 
+  return i;
+}
 
 /*----------------------------------------------------------------------------
  *
