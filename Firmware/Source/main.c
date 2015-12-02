@@ -1,15 +1,10 @@
 /**===========================================================================+
  *
- * $HeadURL: $
- * $Revision: $
- * $Date: 01/11/2014 $
- * $Author: Lorenzo Fraccaro $
- *
+ * @Author rosenkranz
+ * @file main.c
  * @brief main 
  *
- * @file
- *
- *  Change: removed waiting loop inside log task (enabled multiple simultaneous files)
+ * Changes: temporarily disabled log thread
  *
  *============================================================================*/
 
@@ -32,7 +27,6 @@
 #include "log.h"
 
 /*---------------------------------- Globals ---------------------------------*/
-
 
 /* MMC driver instance. */
 MMCDriver MMCD1;
@@ -103,9 +97,7 @@ static void Led_Handler ( void ) {
    } else {                                   /* no fix */
       palSetPad(IOPORT3, GPIOC_LED4);         /* turn on blue LED */
    }
- 
    palTogglePad(IOPORT3, GPIOC_LED3);         /* always toggle red LED */
-
 }
 
 /*----------------------------------------------------------------------------
@@ -123,10 +115,11 @@ static msg_t Log_Thread(void *arg) {
   /*
    * initialize log file
    */
-  Log_Init();
+//  Log_Init();
 
   while (TRUE) {
     chThdSleepMilliseconds(20);
+/*
     if (MODE_STAB == Get_RC_Mode()) {
       Log_Write_Str("1, ", 3);
     } else {
@@ -139,6 +132,7 @@ static msg_t Log_Thread(void *arg) {
     f_temp = AHRS_Yaw_Rad( );
     Log_Write_Var((uint8_t *) &f_temp, sizeof (f_temp));
     Log_Write_Ch('\n');
+*/
   }
   return 0;
 }
@@ -215,7 +209,6 @@ static msg_t Nav_Thread(void *arg) {
   return 0;
 }
 
-
 /*----------------------------------------------------------------------------
  *
  * @brief   Telemetry thread
@@ -270,10 +263,12 @@ static msg_t Telemetry_Thread(void *arg) {
 #endif
 }
 
-
-/*
- * Entry point. The main() function is already a thread in the system on entry.
- */
+/*----------------------------------------------------------------------------
+ *
+ * @brief   Entry point 
+ * @remarks The main() function is already a thread in the system on entry.
+ *
+ *----------------------------------------------------------------------------*/
 int main(void) {
 
   halInit();
