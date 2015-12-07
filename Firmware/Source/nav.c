@@ -36,7 +36,7 @@
  *     Distance = sqrt(Delta Lon ^ 2 + Delta Lat ^ 2) * 111320
  * \endcode
  *
- * Change: function print_waypoint(): corrected print of whole part 
+ * Change: function print_waypoint(): corrected print errors
  *
  *============================================================================*/
 
@@ -402,9 +402,9 @@ static uint8_t print_waypoint ( uint16_t ui_num, uint8_t * p_line ) {
   float f_temp;                         /* temporary */
   float f_fract;                        /* fractional part */
   int16_t i_whole;                      /* whole part */
-  int16_t i_div = 100;                  /* divisor */
+  int16_t i_div;                        /* divisor */
   uint8_t length = 0;                   /* length of line */
-  uint8_t j = 0;                        /* counter of digits after decimal point */
+  uint8_t j = 0;                        /* counter f digits after decimal point */
   uint8_t uc_field = 0;                 /* field counter (lat, lon, alt) */
 
   do {
@@ -419,21 +419,22 @@ static uint8_t print_waypoint ( uint16_t ui_num, uint8_t * p_line ) {
     *p_line++ = ' ';                    /* leading space */
     length++;                           /* count characters */
     i_whole = (int16_t)f_temp;          /* whole part */
+    i_div = 100;                        /* divisor */
     f_fract = f_temp - (float)i_whole;  /* fractional part */
 
-    while (i_whole > 0) {
-      *p_line++ = '0' + (i_whole / i_div); /* extract and write digit */
+    for (j = 0; j < 3; j++) {
+      *p_line++ = '0' + (i_whole / i_div); /* digit */
       length++;                         /* count characters */
-      i_whole %= i_div;                 /* remainder */
-      i_div /= 10;                      /* update divisor */
+      i_whole %= i_div;
+      i_div /= 10;
     }
 
-    if (uc_field < 2) {                 /* longitude or latitude */
+    if (uc_field < 3) {                 /* longitude or latitude */
       *p_line++ = '.';                  /* decimal point */
       length++;                         /* count characters */
     }
 
-    for (j = 1; (j < 6) && (uc_field < 2); j++) {  /* precision is 6 digits after decimal point */
+    for (j = 1; (j < 6) && (uc_field < 3); j++) {  /* precision is 6 digits after decimal point */
       f_fract = f_fract * 10.0f;        /* extract digit */
       f_temp = floor(f_fract);          /* */
       *p_line++ = '0' + (uint8_t)f_temp; /* write digit */
@@ -441,7 +442,7 @@ static uint8_t print_waypoint ( uint16_t ui_num, uint8_t * p_line ) {
       f_fract = f_fract - f_temp;       /* update fractional part */
     }
 
-    if (uc_field < 2) {                 /* longitude or latitude */
+    if (uc_field < 3) {                 /* longitude or latitude */
       *p_line++ = ',';                  /* separate fields with comma */
     } else {                            /* altitude */
       *p_line++ = '\n';                 /* new line */
