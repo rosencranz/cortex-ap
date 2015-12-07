@@ -8,8 +8,7 @@
 / CAUTION! Do not forget to make clean the project after any changes to
 / the configuration options.
 /
-/ Changes: enabled sector buffer for each file (_FS_TINY = 0)
-/          enabled multiple files (_FS_SHARE = 2)
+/ Changes: restored _FS_TINY = 1 and _FS_SHARE = 0
 /
 /----------------------------------------------------------------------------*/
 #ifndef _FFCONF
@@ -20,7 +19,7 @@
 / Functions and Buffer Configurations
 /----------------------------------------------------------------------------*/
 
-#define	_FS_TINY        0	/* 0:Normal or 1:Tiny */
+#define	_FS_TINY        1	/* 0:Normal or 1:Tiny */
 /* When _FS_TINY is set to 1, FatFs uses the sector buffer in the file system
 /  object instead of the sector buffer in the individual file object for file
 /  data transfer. This reduces memory consumption 512 bytes each file object. */
@@ -188,7 +187,7 @@
 /      function must be added to the project. */
 
 
-#define	_FS_SHARE	2	/* 0:Disable or >=1:Enable */
+#define	_FS_SHARE	0	/* 0:Disable or >=1:Enable */
 /* To enable file shareing feature, set _FS_SHARE to 1 or greater. The value
    defines how many files can be opened simultaneously. */
 
