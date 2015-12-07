@@ -1,16 +1,10 @@
 /*============================================================================+
  *
- * $HeadURL: $
- * $Revision: $
- * $Date:  $
- * $Author: $
- *
  * @brief telemetry stub
  *
- * @file
+ * @file mavlink_stub.c
  *
- * Change:
- *
+ * Change: ToRad replaced with DEGTORAD
  *
  *============================================================================*/
 
@@ -97,7 +91,7 @@ float Telemetry_Get_Gain(ENUM_GAIN gain)
             break;
 
         case TEL_NAV_BANK :
-            f_result = ToRad(f_param_value[gain]);
+            f_result = DEGTORAD(f_param_value[gain]);
             break;
 
         case TEL_GAIN_NUMBER :
