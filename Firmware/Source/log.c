@@ -9,7 +9,7 @@
  *
  * @file
  *
- * Change: variable "file" renamed "log_file" 
+ * Change: function Log_Write_Var(): added file flush after MAX_SAMPLES write
  *
  *============================================================================*/
 
@@ -24,7 +24,7 @@
 
 /*--------------------------------- Definitions ------------------------------*/
 
-#define MAX_SAMPLES     10000
+#define MAX_SAMPLES     1000u
 
 /*----------------------------------- Macros ---------------------------------*/
 
@@ -44,7 +44,7 @@ static uint8_t sz_log_file[10] = "log0.txt";    /* log file name */
 static FIL log_file;                            /* file structure */
 static UINT ui_written;                         /* counter of bytes written */
 static bool_t b_file_ok = FALSE;                /* log file succesfully open */
-static uint32_t ul_samples = 0;                 /* counter of samples written */
+static uint16_t ui_samples = 0u;                /* counter of samples written */
 
 /*--------------------------------- Prototypes -------------------------------*/
 
@@ -102,16 +102,21 @@ void Log_Init ( void ) {
 void Log_Write_Var ( uint8_t *data, uint8_t size ) {
 
   uint8_t sz_string[10];
-  uint8_t msb;
-  uint8_t lsb;
-  uint8_t k;
-  uint8_t j = 0;
+  uint8_t msb;                                  /* most significant byte */
+  uint8_t lsb;                                  /* least significant byte */
+  uint8_t k;                                    /* counter of digits */
+  uint8_t j = 0;                                /* counter of string characters */
 
-  if (size > 8) {
+  if (!b_file_ok) {                             /* log file is closed */
+    return;                                     /* no reason to continue */
+  }
+
+  if (size > 8) {                               /* limit variable size */
     size = 8;
   }
 
-  sz_string[j++] = ' ';                         /* separate with blank space */
+  sz_string[j++] = ' ';                         /* blank space */
+
   for (k = 0; k < size; k++) {                  /* repeat for all digits */
     msb = *data++;
     lsb = msb & 0x0F;
@@ -128,15 +133,22 @@ void Log_Write_Var ( uint8_t *data, uint8_t size ) {
     }
   }
 
-  sz_string[j++] = ',';                         /* terminate line */
-  if (b_file_ok) {                              /* file is open */
-    f_write(&log_file, sz_string, j, &ui_written); /* write line */
-    if ((j != ui_written) ||                    /* no file space */
-        (ul_samples >= MAX_SAMPLES)) {          /* too many samples */
-      f_close(&log_file);                       /* close file */
-      b_file_ok = FALSE;                        /* halt logging */
-    } else {                                    /* write successfull */
-      ul_samples++;                             /* update sample counter */
+  sz_string[j++] = ',';                         /* separate numbers */
+
+  f_write(&log_file, sz_string, j, &ui_written); /* write line */
+
+  if (j == ui_written) {                        /* write successfull */
+    ui_samples++;                               /* update sample counter */
+  } else {                                      /* no file space */
+    f_close(&log_file);                         /* close file */
+    b_file_ok = FALSE;                          /* halt log */
+    return;                                     /* no reason to continue */
+  }
+
+  if (ui_samples >= MAX_SAMPLES) {              /* reached samples limit */
+    ui_samples = 0u;                            /* clear samples counter */
+    if (FR_OK != f_sync(&log_file)) {           /* can't flush file */
+      b_file_ok = FALSE;                        /* halt log */
     }
   }
 }
@@ -151,11 +163,11 @@ void Log_Write_Var ( uint8_t *data, uint8_t size ) {
  *----------------------------------------------------------------------------*/
 void Log_Write_Ch ( uint8_t ch ) {
 
-  if (b_file_ok) {                          /* file is open     */
-    f_write(&log_file, &ch, 1, &ui_written);/* write character  */
-    if (1 != ui_written) {                  /* no file space    */
-      f_close(&log_file);                   /* close file       */
-      b_file_ok = FALSE;                    /* halt logging     */
+  if (b_file_ok) {                          /* file is open      */
+    f_write(&log_file, &ch, 1, &ui_written);/* write character   */
+    if (1 != ui_written) {                  /* no file space     */
+      f_close(&log_file);                   /* close file        */
+      b_file_ok = FALSE;                    /* halt log          */
     } else {                                /* write successfull */
 
     }
