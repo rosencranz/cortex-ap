@@ -5,3 +5,9 @@ Flights
 /Doc/Piccolo Setup Guide.pdf
 /Tools
 Hardware
+debug
+/Firmware/keil/cxap.uvgui.lorenz
+/Firmware/keil/cxap_Debug.dep
+release
+/Firmware/keil/cxap_Release.dep
+/Firmware/keil/*.bak

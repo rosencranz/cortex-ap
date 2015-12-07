@@ -8,6 +8,8 @@
 / CAUTION! Do not forget to make clean the project after any changes to
 / the configuration options.
 /
+/ Changes: restored _FS_TINY = 1 and _FS_SHARE = 0
+/
 /----------------------------------------------------------------------------*/
 #ifndef _FFCONF
 #define _FFCONF 6502	/* Revision ID */
@@ -17,7 +19,7 @@
 / Functions and Buffer Configurations
 /----------------------------------------------------------------------------*/
 
-#define	_FS_TINY		1	/* 0:Normal or 1:Tiny */
+#define	_FS_TINY        1	/* 0:Normal or 1:Tiny */
 /* When _FS_TINY is set to 1, FatFs uses the sector buffer in the file system
 /  object instead of the sector buffer in the individual file object for file
 /  data transfer. This reduces memory consumption 512 bytes each file object. */

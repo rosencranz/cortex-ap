@@ -36,7 +36,7 @@
  *     Distance = sqrt(Delta Lon ^ 2 + Delta Lat ^ 2) * 111320
  * \endcode
  *
- * Change: corrected sign of direction error, corrected heading range [0,2PI].
+ * Change: function print_waypoint(): corrected print errors
  *
  *============================================================================*/
 
@@ -77,33 +77,35 @@ extern bool_t fs_ready;
 
 /*----------------------------------- Locals ---------------------------------*/
 
-static uint8_t uc_buffer[BUFFER_LENGTH];            /* file buffer */
-static uint8_t sz_line[LINE_LENGTH];                /* input line */
-static STRUCT_WPT waypoint[MAX_WAYPOINTS];         	/* waypoints array */
-static const uint8_t sz_wpt_file[16] = "path.txt";  /* waypoint file name */
-static FIL file;
-static UINT w_bytes_read = 0;                       /* counter of read bytes */
-static uint16_t ui_distance = 0;                    /* distance to destination [m] */
-static uint16_t ui_wpt_number = 0;                  /* total number of waypoints */
-static uint16_t ui_wpt_index = 0;                   /* waypoint index */
-static float f_alt_error = 0.0f;                    /* altitude error [m] */
-static float f_curr_lon = 0.0f;                     /* current longitude */
-static float f_curr_lat = 0.0f;                     /* current latitude */
-static float f_curr_alt = 0.0f;                     /* current altitude [m] */
-static float f_dest_lat = 0.0f;                     /* destination latitude */
-static float f_dest_lon = 0.0f;                     /* destination longitude */
-static float f_dest_alt = 0.0f;                     /* destination altitude */
-static float f_bearing = 0.0f;                      /* angle to destination [°] */
-static bool_t b_home = FALSE;                       /* home position saved */
+static       uint8_t    uc_buffer[BUFFER_LENGTH];       /* file buffer */
+static       uint8_t    sz_line[LINE_LENGTH];           /* line */
+static       STRUCT_WPT waypoint[MAX_WAYPOINTS];        /* waypoints array */
+static const uint8_t    sz_wpt_file[16] = "path.txt";   /* waypoint file name */
+static       FIL        nav_file;                       /* file structure */
+static       UINT       w_bytes       = 0;              /* counter of file bytes */
+static       uint16_t   ui_distance   = 0;              /* distance to destination [m] */
+static       uint16_t   ui_wpt_number = 0;              /* total number of waypoints */
+static       uint16_t   ui_wpt_index  = 0;              /* waypoint index */
+static       float      f_alt_error   = 0.0f;           /* altitude error [m] */
+static       float      f_curr_lon    = 0.0f;           /* current longitude */
+static       float      f_curr_lat    = 0.0f;           /* current latitude */
+static       float      f_curr_alt    = 0.0f;           /* current altitude [m] */
+static       float      f_dest_lat    = 0.0f;           /* destination latitude */
+static       float      f_dest_lon    = 0.0f;           /* destination longitude */
+static       float      f_dest_alt    = 0.0f;           /* destination altitude */
+static       float      f_bearing     = 0.0f;           /* angle to destination [°] */
+static       bool       b_home        = FALSE;          /* home position saved */
+static       bool       b_modified    = FALSE;          /* mission moodified by GCS */
 
 /*--------------------------------- Prototypes -------------------------------*/
 
-static bool parse_waypoint ( const uint8_t * psz_line );
+static bool    parse_waypoint ( const uint8_t * psz_line );
+static uint8_t print_waypoint ( uint16_t wpt_num, uint8_t * p_line );
 
 /*----------------------------------------------------------------------------
  *
  * @brief   navigation
- *
+ * @param   -
  * @remarks Bearing is computed as :
  *
  *             PI/2 - atan2(latitude difference, longitude difference)
@@ -193,7 +195,9 @@ void Nav_Load_Waypoints( void ) {
     /* Check file system and open waypoints file */
     if (!fs_ready) {                                /* file system not mounted */
         ui_wpt_number = 0;                          /* no waypoint available */
-    } else if (FR_OK != f_open(&file, (const TCHAR *)sz_wpt_file, FA_READ)) {
+    } else if (FR_OK != f_open(&nav_file, 
+                               (const TCHAR *)sz_wpt_file, 
+                               FA_READ)) {
                                                     /* error opening file */
         ui_wpt_number = 0;                          /* no waypoint available */
     } else {                                        /* file system mounted and */
@@ -203,11 +207,14 @@ void Nav_Load_Waypoints( void ) {
 
     /* Read waypoint file */
     while ((!b_error) && (b_open) &&
-           (FR_OK == f_read(&file, uc_buffer, BUFFER_LENGTH, &w_bytes_read))) {
-        b_open = (w_bytes_read != 0);               /* force file closed if end of file */
+           (FR_OK == f_read(&nav_file, 
+                            uc_buffer, 
+                            BUFFER_LENGTH, 
+                            &w_bytes))) {
+        b_open = (w_bytes != 0);                    /* force file closed if end of file */
         p_buffer = uc_buffer;                       /* init buffer pointer */
-        while ((w_bytes_read != 0) && (!b_error)) { /* buffer not empty and no error */
-            w_bytes_read--;                         /* decrease overall counter */
+        while ((w_bytes != 0) && (!b_error)) {      /* buffer not empty and no error */
+            w_bytes--;                              /* decrease overall counter */
             c = *p_buffer++;                        /* read another character */
             if ( c == 10 ) {                        /* found new line */
                 uc_counter = 0;                     /* reached end of line */
@@ -225,7 +232,7 @@ void Nav_Load_Waypoints( void ) {
             }
         }
     }
-    ( void )f_close( &file );                       /* close file */
+    ( void )f_close( &nav_file );                   /* close file */
 
     /* errors reading file */
     if (b_error) {
@@ -236,6 +243,65 @@ void Nav_Load_Waypoints( void ) {
     }
 }
 
+/*----------------------------------------------------------------------------
+ *
+ * @brief   Store waypoints file into SD card
+ * @param   -
+ * @return  -
+ * @remarks -
+ *
+ *----------------------------------------------------------------------------*/
+void Nav_Store_Waypoints( void ) {
+
+  uint8_t * psz_line;         /* pointer to line read */
+  uint16_t ui_wpt_counter;    /* waypoint counter */
+  bool_t b_error;             /* file read error */
+  bool_t b_open;              /* file opened */
+  uint8_t length;             /* line length */
+
+  if (!b_modified) {          /* mission hasn't been modified */
+     return;
+  }
+
+  b_modified = FALSE;
+  b_open = FALSE;
+  b_error = FALSE;
+  psz_line = sz_line;         /* init line pointer */
+  ui_wpt_counter = 1;
+
+  /* Check file system and open waypoints file */
+  if ((fs_ready) &&                               /* file system mounted */
+      (FR_OK == f_open(&nav_file,                 /* opening file */
+                       (const TCHAR *)sz_wpt_file, 
+                       FA_WRITE|FA_CREATE_ALWAYS))) {
+    b_open = TRUE;                                /* file succesfully open */
+
+  /* Write waypoint file */
+    do {
+      length = print_waypoint(ui_wpt_counter++, 
+                              psz_line);
+      if (FR_OK != f_write(&nav_file, 
+                           psz_line, 
+                           length, 
+                           &w_bytes)) {
+         b_error = TRUE;
+      }
+      b_open = (w_bytes != 0);                    /* force file closed if end of file */
+    } while ((!b_error) && 
+              (b_open) &&
+              (ui_wpt_counter < ui_wpt_number));  /* init buffer pointer */
+  }                                               /* end do loop */
+
+  ( void )f_close( &nav_file );                   /* close file */
+
+  /* errors writing file */
+  if (b_error) {
+    ui_wpt_number = 0;                            /* no waypoint available */
+    ui_wpt_index = 0;                             /* use launch position */
+  } else {                                        /* no waypoint file */
+    ui_wpt_index = 1;                             /* start with first waypoint */
+  }
+}
 
 /*----------------------------------------------------------------------------
  *
@@ -305,8 +371,8 @@ static bool parse_waypoint ( const uint8_t * psz_line ) {
     }
     /* assign value and update field counter */
     switch ( uc_field++ ) {
-      case 0: waypoint[ui_wpt_number].lon = f_temp; break;
-      case 1: waypoint[ui_wpt_number].lat = f_temp; break;
+      case 0: waypoint[ui_wpt_number  ].lon = f_temp; break;
+      case 1: waypoint[ui_wpt_number  ].lat = f_temp; break;
       case 2: waypoint[ui_wpt_number++].alt = f_temp; break;
       default: break;
     }
@@ -314,24 +380,116 @@ static bool parse_waypoint ( const uint8_t * psz_line ) {
   return FALSE;
 }
 
+/*----------------------------------------------------------------------------
+ *
+ * @brief   Print waypoint coordinates into string
+ * @return  string length
+ * @remarks format of waypoint coordinate is:
+ *
+ *          xx.xxxxxx,[ ]yy.yyyyyy,[ ]aaa[.[a]]\0
+ *
+ *          where :
+ *
+ *          x = longitude
+ *          y = latitude
+ *          a = altitude
+ *          [ ] are zero or more spaces
+ *          [.[a]] is an optional decimal point with an optional decimal data
+ *
+ *----------------------------------------------------------------------------*/
+static uint8_t print_waypoint ( uint16_t ui_num, uint8_t * p_line ) {
+
+  float f_temp;                         /* temporary */
+  float f_fract;                        /* fractional part */
+  int16_t i_whole;                      /* whole part */
+  int16_t i_div;                        /* divisor */
+  uint8_t length = 0;                   /* length of line */
+  uint8_t j = 0;                        /* counter f digits after decimal point */
+  uint8_t uc_field = 0;                 /* field counter (lat, lon, alt) */
+
+  do {
+
+    switch ( uc_field++ ) {             /* assign value and update field counter */
+      case 0: f_temp = waypoint[ui_num].lon; break;
+      case 1: f_temp = waypoint[ui_num].lat; break;
+      case 2: f_temp = waypoint[ui_num].alt; break;
+      default: break;
+    }
+
+    *p_line++ = ' ';                    /* leading space */
+    length++;                           /* count characters */
+    i_whole = (int16_t)f_temp;          /* whole part */
+    i_div = 100;                        /* divisor */
+    f_fract = f_temp - (float)i_whole;  /* fractional part */
+
+    for (j = 0; j < 3; j++) {
+      *p_line++ = '0' + (i_whole / i_div); /* digit */
+      length++;                         /* count characters */
+      i_whole %= i_div;
+      i_div /= 10;
+    }
+
+    if (uc_field < 3) {                 /* longitude or latitude */
+      *p_line++ = '.';                  /* decimal point */
+      length++;                         /* count characters */
+    }
+
+    for (j = 1; (j < 6) && (uc_field < 3); j++) {  /* precision is 6 digits after decimal point */
+      f_fract = f_fract * 10.0f;        /* extract digit */
+      f_temp = floor(f_fract);          /* */
+      *p_line++ = '0' + (uint8_t)f_temp; /* write digit */
+      length++;                         /* count characters */
+      f_fract = f_fract - f_temp;       /* update fractional part */
+    }
+
+    if (uc_field < 3) {                 /* longitude or latitude */
+      *p_line++ = ',';                  /* separate fields with comma */
+    } else {                            /* altitude */
+      *p_line++ = '\n';                 /* new line */
+    }
+    length++;                           /* count characters */
+
+  } while ( uc_field < 3 );             /* end do loop */
+
+  return length;
+}
 
 /*----------------------------------------------------------------------------
  *
- * @brief   Get total waypoint number
+ * @brief   Get total waypoints number
  * @param   -
- * @return waypoint number
+ * @return  waypoints number
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
-uint16_t Nav_Wpt_Number ( void ) {
+uint16_t Nav_Wpt_Number_Get ( void ) {
   return ui_wpt_number;
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * @brief   Set total waypoints number
+ * @param   waypoints number
+ * @return  FALSE if waypoints number exceeded maximum capacity, TURE otherwise
+ * @remarks -
+ *
+ *----------------------------------------------------------------------------*/
+bool Nav_Wpt_Number_Set ( uint16_t num ) {
+
+  if (num < MAX_WAYPOINTS) {            /* number fits storage */
+    ui_wpt_number = num;
+    return TRUE;
+  } else {                              /* number exceeds storage capability */
+    ui_wpt_number = 0;
+    return FALSE;
+  }
 }
 
 /*----------------------------------------------------------------------------
  *
  * @brief   Get waypoint index
  * @param   -
- * @return waypoint index
+ * @return  waypoint index
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -343,7 +501,7 @@ uint16_t Nav_Wpt_Index ( void ) {
  *
  * @brief   Get waypoint altitude [m]
  * @param   -
- * @return altitude
+ * @return  altitude
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -355,7 +513,7 @@ uint16_t Nav_Wpt_Altitude ( void ) {
  *
  * @brief   Get waypoint data
  * @param   index = waypoint number
- * @return waypoint data structure
+ * @return  waypoint data structure
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -373,20 +531,27 @@ void Nav_Wpt_Get ( uint16_t index, STRUCT_WPT * wpt ) {
  * @brief   Set waypoint data
  * @param   index = waypoint number
  * @param   wpt = waypoint data structure
- * @return -
+ * @return  -
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
-void Nav_Wpt_Set ( uint16_t index, STRUCT_WPT wpt ) {
-    (void) index;
-    (void) wpt;
+void Nav_Wpt_Set ( uint16_t index, STRUCT_WPT * wpt ) {
+
+  if (index < MAX_WAYPOINTS) {
+    waypoint[index].lat = wpt->lat;
+    waypoint[index].lon = wpt->lon;
+    waypoint[index].alt = wpt->alt;
+  }
+  if (index == ui_wpt_number - 1) {
+    b_modified = TRUE;
+  }
 }
 
 /*----------------------------------------------------------------------------
  *
  * @brief   Get computed bearing [°]
  * @param   -
- * @return bearing angle in radian, between 0 and 2 * PI
+ * @return  bearing angle in radian, between 0 and 2 * PI
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -398,7 +563,7 @@ float Nav_Bearing_Rad ( void ) {
  *
  * @brief   Get distance to destination [m]
  * @param   -
- * @return distance in meters
+ * @return  distance in meters
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
@@ -408,9 +573,9 @@ uint16_t Nav_Distance ( void ) {
 
 /*----------------------------------------------------------------------------
  *
- * @brief   Get throttle
+ * @brief   Get altitude error 
  * @param   -
- * @return throttle
+ * @return  altitude error
  * @remarks -
  *
  *----------------------------------------------------------------------------*/

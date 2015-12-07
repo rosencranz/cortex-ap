@@ -1,15 +1,10 @@
 /**===========================================================================+
  *
- * $HeadURL: $
- * $Revision: $
- * $Date:  $
- * $Author: $
- *
+ * @Author rosenkranz
+ * @file servo.c
  * @brief Servo driver
  *
- * @file
- *
- * Change:
+ * Change: where possible, variables declared as "const"
  *
  *============================================================================*/
 
@@ -44,7 +39,7 @@ static int16_t i_servo_position[SERVO_NUMBER] = {
 };
 
 /* sign of servo values */
-static int16_t i_servo_sign[SERVO_NUMBER] = {
+static const int16_t i_servo_sign[SERVO_NUMBER] = {
      1,             /* aileron */
      1,             /* rudder */
     -1,             /* elevator */
@@ -56,7 +51,7 @@ static int16_t i_servo_sign[SERVO_NUMBER] = {
  * Cyclic callback enabled, channels 3 and 4 enabled without callbacks,
  * the active state is a logic one.
  */
-static PWMConfig pwmcfg = {
+static const PWMConfig pwmcfg = {
   1000000,                          /* 1 MHz PWM clock frequency.  */
   20000,                            /* PWM period 20 mS (in ticks).  */
   NULL,                             /* callback function */

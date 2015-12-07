@@ -1,16 +1,10 @@
 /**===========================================================================+
  *
- * $HeadURL: $
- * $Revision: $
- * $Date: 01/11/2014 $
- * $Author: Lorenzo Fraccaro $
- *
+ * @Author rosenkranz
+ * @file main.c
  * @brief main 
  *
- * @file
- *
- *  Change: sparse LED management replaced by Led_Handler() function
- *          function Init_Log() renamed Log_Init()
+ * Changes: restored log thread
  *
  *============================================================================*/
 
@@ -33,7 +27,6 @@
 #include "log.h"
 
 /*---------------------------------- Globals ---------------------------------*/
-
 
 /* MMC driver instance. */
 MMCDriver MMCD1;
@@ -104,9 +97,7 @@ static void Led_Handler ( void ) {
    } else {                                   /* no fix */
       palSetPad(IOPORT3, GPIOC_LED4);         /* turn on blue LED */
    }
- 
    palTogglePad(IOPORT3, GPIOC_LED3);         /* always toggle red LED */
-
 }
 
 /*----------------------------------------------------------------------------
@@ -122,17 +113,13 @@ static msg_t Log_Thread(void *arg) {
   (void)arg;
 
   /*
-   * wait until nav thread completes reading waypoint file
-   */
-  chThdSleepMilliseconds(1000);
-
-  /*
    * initialize log file
    */
   Log_Init();
 
   while (TRUE) {
     chThdSleepMilliseconds(20);
+
     if (MODE_STAB == Get_RC_Mode()) {
       Log_Write_Str("1, ", 3);
     } else {
@@ -145,6 +132,7 @@ static msg_t Log_Thread(void *arg) {
     f_temp = AHRS_Yaw_Rad( );
     Log_Write_Var((uint8_t *) &f_temp, sizeof (f_temp));
     Log_Write_Ch('\n');
+
   }
   return 0;
 }
@@ -157,8 +145,10 @@ static msg_t Log_Thread(void *arg) {
  *----------------------------------------------------------------------------*/
 static WORKING_AREA(wa_AHRS_Thread, 128);
 static msg_t AHRS_Thread(void *arg) {
+
   chRegSetThreadName("AHRS_Thread");
   (void)arg;
+
   while (TRUE) {
     chThdSleepMilliseconds(20);
     p_sensor_data = Request_IMU_Data();
@@ -178,14 +168,14 @@ static msg_t AHRS_Thread(void *arg) {
  *----------------------------------------------------------------------------*/
 static WORKING_AREA(wa_Baro_Thread, 128);
 static msg_t Baro_Thread(void *arg) {
+
   chRegSetThreadName("Baro_Thread");
   (void)arg;
+
   while (TRUE) {
     chThdSleepMilliseconds(300);
-
     Baro_Handler();
     Led_Handler();
-
   }
   return 0;
 }
@@ -200,7 +190,7 @@ static WORKING_AREA(wa_Nav_Thread, 320);
 static msg_t Nav_Thread(void *arg) {
   EventListener elGPSdata;
   flagsmask_t flags;
-  uint8_t counter;
+
   chRegSetThreadName("Nav_Thread");
   (void)arg;
 
@@ -209,17 +199,15 @@ static msg_t Nav_Thread(void *arg) {
   chEvtRegisterMask((EventSource *)chnGetEventSource(&SD2), &elGPSdata, EVENT_MASK(1));
   while (TRUE) {
      (void)chEvtWaitOneTimeout(EVENT_MASK(1), MS2ST(500));
-
      flags = chEvtGetAndClearFlags(&elGPSdata);
      if (flags & CHN_INPUT_AVAILABLE) {
         GPS_Parse();
      }
      Navigation();
-
+     Nav_Store_Waypoints();
   }
   return 0;
 }
-
 
 /*----------------------------------------------------------------------------
  *
@@ -237,7 +225,7 @@ static msg_t Telemetry_Thread(void *arg) {
 
 #if (SIMULATOR != SIM_NONE)
 
-  while (1) {
+  while (TRUE) {
     chThdSleepMilliseconds(20);
     Simulator_Send_Controls();          /* update simulator controls */
     Simulator_Parse();                  /* parse simulator data */
@@ -275,10 +263,12 @@ static msg_t Telemetry_Thread(void *arg) {
 #endif
 }
 
-
-/*
- * Entry point. The main() function is already a thread in the system on entry.
- */
+/*----------------------------------------------------------------------------
+ *
+ * @brief   Entry point 
+ * @remarks The main() function is already a thread in the system on entry.
+ *
+ *----------------------------------------------------------------------------*/
 int main(void) {
 
   halInit();
@@ -338,7 +328,7 @@ int main(void) {
    * 0.409 < 0.756
    */
 
-  /* main loop that do nothing */
+  /* main loop that does nothing */
   while (TRUE) {
     chThdSleepMilliseconds(500);
   }

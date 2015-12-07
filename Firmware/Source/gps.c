@@ -1,15 +1,10 @@
 /**===========================================================================+
  *
- * $HeadURL: $
- * $Revision: $
- * $Date:  $
- * $Author: $
- *
+ * @Author: rosenkran
+ * @file gps.c
  * @brief GPS driver
  *
- * @file
- *
- * Change: decoded date from GPRMC sentence
+ * Change: where possible, variables declared as "const"
  *
  *============================================================================*/
 
@@ -69,7 +64,7 @@ static ENUM_NMEA_TYPE e_nmea_type;
 
 static Semaphore sem_gps;
 
-static SerialConfig sdcfg = {
+static const SerialConfig sdcfg = {
   57600
 };
 

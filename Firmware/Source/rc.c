@@ -1,13 +1,8 @@
 /**===========================================================================+
  *
- * $HeadURL: $
- * $Revision: $
- * $Date: 01/11/2014 $
- * $Author: Lorenzo Fraccaro $
- *
+ * @Author: rosenkranz
+ * @file rc.c
  * @brief Remote control PPM input
- *
- * @file
  *
  *  uc_pulse_index     aliases          content of ui_pulse_buffer[]
  *
@@ -29,8 +24,7 @@
  *  Added counter of channel pulses with correct pulse length.
  *  Counter is copied into a module variable for signal strength indication.
  *
- *  Change: corrected detection of "mode" switch position
- *
+ *  Change: where possible, variables declared as "const"
  *
  *============================================================================*/
 
@@ -75,7 +69,7 @@ static void icuperiodcb(ICUDriver *icup);   /* period callback */
 
 /*----------------------------------- Locals ---------------------------------*/
 
-static ICUConfig icucfg = {
+static const ICUConfig icucfg = {
   ICU_INPUT_ACTIVE_HIGH,
   1000000,                                   /* 1 MHz ICU clock frequency.   */
   NULL,
