@@ -4,7 +4,7 @@
  * @file main.c
  * @brief main 
  *
- * Changes: temporarily disabled log thread
+ * Changes: restored log thread
  *
  *============================================================================*/
 
@@ -115,11 +115,11 @@ static msg_t Log_Thread(void *arg) {
   /*
    * initialize log file
    */
-//  Log_Init();
+  Log_Init();
 
   while (TRUE) {
     chThdSleepMilliseconds(20);
-/*
+
     if (MODE_STAB == Get_RC_Mode()) {
       Log_Write_Str("1, ", 3);
     } else {
@@ -132,7 +132,7 @@ static msg_t Log_Thread(void *arg) {
     f_temp = AHRS_Yaw_Rad( );
     Log_Write_Var((uint8_t *) &f_temp, sizeof (f_temp));
     Log_Write_Ch('\n');
-*/
+
   }
   return 0;
 }
