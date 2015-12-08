@@ -18,6 +18,10 @@
    aka barthess.
  */
 
+/* 
+ * Changes: corrected compile error in rtc_lld_get_time()
+ */
+
 /**
  * @file    STM32/RTCv1/rtc_lld.c
  * @brief   STM32 RTC subsystem low level driver header.
@@ -196,9 +200,10 @@ void rtc_lld_set_time(RTCDriver *rtcp, const RTCTime *timespec) {
  * @notapi
  */
 void rtc_lld_get_time(RTCDriver *rtcp, RTCTime *timespec) {
-  (void)rtcp;
 
   uint32_t time_frac;
+
+  (void)rtcp;
 
   /* Required because access to CNT and DIV.*/
   rtc_lld_apb1_sync();
