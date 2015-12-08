@@ -4,7 +4,7 @@
  * @file main.c
  * @brief main 
  *
- * Changes: restored log thread
+ * Changes: added support and initialization for RTC
  *
  *============================================================================*/
 
@@ -15,10 +15,12 @@
 
 #include "ff.h"
 #include "config.h"
+#include "chrtclib.h"
 #include "dcm.h"
 #include "imu.h"
 #include "gps.h"
 #include "rc.h"
+#include "rtc.h"
 #include "baro.h"
 #include "servo.h"
 #include "control.h"
@@ -34,9 +36,12 @@ MMCDriver MMCD1;
 /* FS mounted and ready.*/
 bool_t fs_ready = FALSE;
 
+/* Time object */
+struct tm Rtc_Time;
+
 /*----------------------------------- Locals ---------------------------------*/
 
-/* FS object. */
+/* File System object. */
 static FATFS MMC_FS;
 
 /* Maximum speed SPI configuration (18MHz, CPHA=0, CPOL=0, MSb first).*/
@@ -273,7 +278,14 @@ int main(void) {
 
   halInit();
   chSysInit();
-
+  Rtc_Time.tm_sec = 0;
+  Rtc_Time.tm_min = 0;
+  Rtc_Time.tm_hour = 17;
+  Rtc_Time.tm_mday = 8;
+  Rtc_Time.tm_mon = 12 - 1;
+  Rtc_Time.tm_year = 2015 - 1900;
+  rtcSetTimeTm(&RTCD1, &Rtc_Time);
+	
   chThdSleepMilliseconds(200);
   Servo_Init();
   IMU_Init();
