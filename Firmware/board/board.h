@@ -13,7 +13,9 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-
+/* 
+ * Changes: STM32F10X_MD_VL defined in compiler settings 
+ */
 #ifndef _BOARD_H_
 #define _BOARD_H_
 
@@ -36,7 +38,7 @@
 /*
  * MCU type, supported types are defined in ./os/hal/platforms/hal_lld.h.
  */
-#define STM32F10X_MD_VL
+/* Note: STM32F10X_MD_VL defined in compiler settings */
 
 /*
  * IO pins assignments.
