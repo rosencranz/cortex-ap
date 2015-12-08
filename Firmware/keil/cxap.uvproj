@@ -349,9 +349,9 @@
             <uSurpInc>0</uSurpInc>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>__heap_base__=Image$$RW_IRAM1$$ZI$$Limit __heap_end__=Image$$RW_IRAM2$$Base</Define>
+              <Define>__heap_base__=Image$$RW_IRAM1$$ZI$$Limit __heap_end__=Image$$RW_IRAM2$$Base STM32F10X_MD_VL STM32F1XX</Define>
               <Undefine></Undefine>
-              <IncludePath>..\os\kernel\include;..\os\port\common\ARMCMx;..\os\port\common\ARMCMx\CMSIS\include;..\os\port\RVCT\ARMCMx;..\os\port\RVCT\ARMCMx\STM32F1xx;..\os\hal\include;..\os\hal\platforms\STM32;..\os\hal\platforms\STM32\GPIOv1;..\os\hal\platforms\STM32\I2Cv1;..\os\hal\platforms\STM32\SPIv1;..\os\hal\platforms\STM32\TIMv1;..\os\hal\platforms\STM32\USARTv1;..\os\hal\platforms\STM32F1xx;..\board;..\os\various;..\source;..\fatfs\src</IncludePath>
+              <IncludePath>..\os\kernel\include;..\os\port\common\ARMCMx;..\os\port\common\ARMCMx\CMSIS\include;..\os\port\RVCT\ARMCMx;..\os\port\RVCT\ARMCMx\STM32F1xx;..\os\hal\include;..\os\hal\platforms\STM32;..\os\hal\platforms\STM32\GPIOv1;..\os\hal\platforms\STM32\I2Cv1;..\os\hal\platforms\STM32\RTCv1;..\os\hal\platforms\STM32\SPIv1;..\os\hal\platforms\STM32\TIMv1;..\os\hal\platforms\STM32\USARTv1;..\os\hal\platforms\STM32F1xx;..\board;..\os\various;..\source;..\fatfs\src</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -761,6 +761,16 @@
               <FileName>ff.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\fatfs\src\ff.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>various</GroupName>
+          <Files>
+            <File>
+              <FileName>chrtclib.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\os\various\chrtclib.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1521,6 +1531,16 @@
               <FileName>ff.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\fatfs\src\ff.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>various</GroupName>
+          <Files>
+            <File>
+              <FileName>chrtclib.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\os\various\chrtclib.c</FilePath>
             </File>
           </Files>
         </Group>
