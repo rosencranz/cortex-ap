@@ -253,8 +253,9 @@ static msg_t Telemetry_Thread(void *arg) {
   }
 
 #elif defined TELEMETRY_MAVLINK
-
-/*  global_data_reset_param_defaults(); */ /* Load default parameters as fallback */
+#if 0
+  global_data_reset_param_defaults();   /* Load default parameters as fallback */
+#endif
 
   while (TRUE)  {
     chThdSleepMilliseconds(1);  /* Use any wait function, better not use sleep */
