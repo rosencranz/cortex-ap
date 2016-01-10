@@ -156,7 +156,9 @@
  * MAVLINK message set
  * https://pixhawk.ethz.ch/mavlink/
  *
- * Change: modified check of all waypoints received
+ * Change: 
+ *         bool replaced with bool_t
+ *         function Gps_Status() replaced with Gps_Fix() 
  *
  *============================================================================*/
 
@@ -555,7 +557,7 @@ static uint16_t             ui_wpt_get_index        = 0;
 static uint16_t             ui_wpt_get_total        = 0;
 static uint16_t             ui_crc;
 static STRUCT_WPT           wpt;
-static bool                 b_wpt_receiving         = FALSE;
+static bool_t               b_wpt_receiving         = FALSE;
 
 /*
  * buffer for incoming messages
@@ -627,23 +629,23 @@ static const SerialConfig sdcfg = {
 
 /*--------------------------------- Prototypes -------------------------------*/
 
-static __inline void checksum_init( void );
-static __inline void checksum_accumulate( uint8_t data );
-static          void Mavlink_Send( uint8_t crc_extra );
-static          bool Mavlink_Parse( void );
-                bool Mavlink_Stream_Trigger( uint8_t stream );
-                void Mavlink_Mission_Item_Get( void );
-                void Mavlink_Mission_Count_Send( void );
-                void Mavlink_Mission_Count_Get( void );
-                void Mavlink_Mission_Ack( uint8_t result );
-                void Mavlink_Heartbeat( void );
-                void Mavlink_Hud( void );
-                void Mavlink_Attitude( void );
-                void Mavlink_Gps_Raw( void );
-                void Mavlink_Position( void );
-                void Mavlink_Param_Send( uint16_t param_index, uint16_t param_count );
-                void Mavlink_Param_Set( void );
-                void Mavlink_HIL_State( void );
+static __inline void   checksum_init( void );
+static __inline void   checksum_accumulate( uint8_t data );
+static          void   Mavlink_Send( uint8_t crc_extra );
+static          bool_t Mavlink_Parse( void );
+                bool_t Mavlink_Stream_Trigger( uint8_t stream );
+                void   Mavlink_Mission_Item_Get( void );
+                void   Mavlink_Mission_Count_Send( void );
+                void   Mavlink_Mission_Count_Get( void );
+                void   Mavlink_Mission_Ack( uint8_t result );
+                void   Mavlink_Heartbeat( void );
+                void   Mavlink_Hud( void );
+                void   Mavlink_Attitude( void );
+                void   Mavlink_Gps_Raw( void );
+                void   Mavlink_Position( void );
+                void   Mavlink_Param_Send( uint16_t param_index, uint16_t param_count );
+                void   Mavlink_Param_Set( void );
+                void   Mavlink_HIL_State( void );
 
 /*---------------------------------- Functions -------------------------------*/
 
@@ -862,7 +864,7 @@ void Mavlink_Gps_Raw( void ) {
   *((uint16_t *)(&uc_tx_msg[28])) = 65535;                                    /* epv */
   *((uint16_t *)(&uc_tx_msg[30])) = Gps_Speed_Kt();                           /* velocity */
   *((uint16_t *)(&uc_tx_msg[32])) = Gps_COG_Deg();                            /* course over ground */
-                  uc_tx_msg[34]   = Gps_Status();                             /* fix type */
+                  uc_tx_msg[34]   = Gps_Fix();                                /* fix type */
                   uc_tx_msg[35]   = 255;                                      /* satellites */
 
   Mavlink_Send(ui_mavlink_crc[MAVLINK_MSG_ID_GPS_RAW_INT]);
@@ -962,7 +964,7 @@ void Mavlink_Param_Send( uint16_t param_index, uint16_t param_count ) {
 void Mavlink_Param_Set( void ) {
 
   float f_value;
-  bool match;
+  bool_t match;
   uint8_t i, j;
 
   f_value = *(float *)(&uc_rx_msg[0]);
@@ -1376,7 +1378,7 @@ void Mavlink_Wpt_Request( void ) {
  * @remarks This function decodes packets on the protocol level.
  *
  *---------------------------------------------------------------------------*/
-static bool Mavlink_Parse(void) {
+static bool_t Mavlink_Parse(void) {
 
   msg_t c;
 #if (0)
@@ -1392,7 +1394,7 @@ static bool Mavlink_Parse(void) {
   static uint8_t packet_idx;
   static uint8_t seq;
   static uint8_t current_rx_seq;
-  bool msg_received = FALSE;
+  bool_t msg_received = FALSE;
 
   c = chnGetTimeout(&SD1, TIME_IMMEDIATE);
   while (c != Q_TIMEOUT) {
@@ -1682,7 +1684,7 @@ void Mavlink_Stream_Send(void)
  *         buffer space > 90  slowdown -1
  *
  *---------------------------------------------------------------------------*/
-bool Mavlink_Stream_Trigger(uint8_t stream)
+bool_t Mavlink_Stream_Trigger(uint8_t stream)
 {
     uint8_t rate = uc_stream_rate[stream];
 
