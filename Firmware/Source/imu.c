@@ -9,8 +9,8 @@
  *
  * @file
  *
- *  Change: ADXL345 set to fullscale range, added sensor saturation detect
- *
+ *  Change: 
+ *          bool replaced with bool_t
  *
  *============================================================================*/
 
@@ -62,7 +62,7 @@ static const int16_t imu_sign[6] = {
  * @remarks -
  *
  *---------------------------------------------------------------------------*/
-bool IMU_Init ( void ) {
+bool_t IMU_Init ( void ) {
 
   uint8_t i, j;
   int16_t * p_sensor_data;

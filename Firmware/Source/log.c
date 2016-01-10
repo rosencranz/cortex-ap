@@ -1,15 +1,11 @@
 /**===========================================================================+
  *
- * $HeadURL: $
- * $Revision: $
- * $Date:  $
- * $Author: $
- *
  * @brief log
  *
  * @file
  *
- * Change: function Log_Write_Var(): added file flush after MAX_SAMPLES write
+ * Change: 
+ *         bool replaced with bool_t
  *
  *============================================================================*/
 
@@ -58,7 +54,7 @@ static uint16_t ui_samples = 0u;                /* counter of samples written */
 void Log_Init ( void ) {
 
   uint8_t j;
-  bool b_found = TRUE;
+  bool_t b_found = TRUE;
 
   /* Check file system */
   if (!fs_ready) {

@@ -1,15 +1,11 @@
 /*===========================================================================+
  *
- * $HeadURL: $
- * $Revision: $
- * $Date: 01711/2014 $
- * $Author: Lorenzo Fraccaro $
- *
  * @brief imu driver
  *
  * @file
  *
- * Change: added sensor saturation detect
+ * Change: 
+ *         bool replaced with bool_t
  *
  *============================================================================*/
 
@@ -22,7 +18,7 @@
 #define ACCEL_SATURATED (1 << 0)
 #define GYRO_SATURATED  (1 << 1)
 
-bool IMU_Init(void);
+bool_t IMU_Init(void);
 int16_t * Request_IMU_Data( void );
 uint8_t Get_IMU_Saturation(void);
 
