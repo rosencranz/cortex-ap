@@ -5,8 +5,7 @@
  * @brief main 
  *
  * Changes: 
- *         function Gps_Status() replaced with Gps_Fix() 
- *         RTC initialized with GPS date / time 
+ *         inclusion of rtc.h moved before gps.h
  *
  *============================================================================*/
 
@@ -20,9 +19,9 @@
 #include "chrtclib.h"
 #include "dcm.h"
 #include "imu.h"
-#include "gps.h"
 #include "rc.h"
 #include "rtc.h"
+#include "gps.h"
 #include "baro.h"
 #include "servo.h"
 #include "control.h"
