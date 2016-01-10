@@ -36,7 +36,9 @@
  *     Distance = sqrt(Delta Lon ^ 2 + Delta Lat ^ 2) * 111320
  * \endcode
  *
- * Change: function print_waypoint(): corrected print errors
+ * Change: 
+ *         bool replaced with bool_t
+ *         function Gps_Status() replaced with Gps_Fix() 
  *
  *============================================================================*/
 
@@ -94,12 +96,12 @@ static       float      f_dest_lat    = 0.0f;           /* destination latitude 
 static       float      f_dest_lon    = 0.0f;           /* destination longitude */
 static       float      f_dest_alt    = 0.0f;           /* destination altitude */
 static       float      f_bearing     = 0.0f;           /* angle to destination [°] */
-static       bool       b_home        = FALSE;          /* home position saved */
-static       bool       b_modified    = FALSE;          /* mission moodified by GCS */
+static       bool_t     b_home        = FALSE;          /* home position saved */
+static       bool_t     b_modified    = FALSE;          /* mission moodified by GCS */
 
 /*--------------------------------- Prototypes -------------------------------*/
 
-static bool    parse_waypoint ( const uint8_t * psz_line );
+static bool_t  parse_waypoint ( const uint8_t * psz_line );
 static uint8_t print_waypoint ( uint16_t wpt_num, uint8_t * p_line );
 
 /*----------------------------------------------------------------------------
@@ -122,7 +124,7 @@ void Navigation ( void ) {
 
   float f_temp, f_dx, f_dy;
 
-  if (!b_home && (GPS_FIX == Gps_Status())) {
+  if (!b_home && (Gps_Fix() != 0)) {
 
     b_home = TRUE;
 
@@ -320,7 +322,7 @@ void Nav_Store_Waypoints( void ) {
  *          [.[a]] is an optional decimal point with an optional decimal data
  *
  *----------------------------------------------------------------------------*/
-static bool parse_waypoint ( const uint8_t * psz_line ) {
+static bool_t parse_waypoint ( const uint8_t * psz_line ) {
 
   float f_temp;                       /* temporary */
   float f_div;                        /* divisor */
@@ -474,7 +476,7 @@ uint16_t Nav_Wpt_Number_Get ( void ) {
  * @remarks -
  *
  *----------------------------------------------------------------------------*/
-bool Nav_Wpt_Number_Set ( uint16_t num ) {
+bool_t Nav_Wpt_Number_Set ( uint16_t num ) {
 
   if (num < MAX_WAYPOINTS) {            /* number fits storage */
     ui_wpt_number = num;
