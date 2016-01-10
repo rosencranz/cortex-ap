@@ -4,9 +4,15 @@
  * @file gps.c
  * @brief GPS driver
  *
- * Change: added decoding of date and time from NMEA sentences
+ * Change: 
+ *         GPS date and time set even if GPS has no fix
+ *         added GPS_TIME flag indicating availability of date-time
+ *         added function Gps_Set_Date()
+ *         function Gps_Status() renamed Gps_Fix()
  *
  *============================================================================*/
+
+#include <time.h> 
 
 #include "ch.h"
 #include "hal.h"
@@ -19,6 +25,8 @@
 /*--------------------------------- Definitions ------------------------------*/
 
 #define LINE_LENGTH 16      /* length of lines read */
+#define GPS_FIX      3      /* GPS status: satellite fix */
+#define GPS_TIME     4      /* GPS status: time available */
 
 /*----------------------------------- Macros ---------------------------------*/
 
@@ -60,13 +68,13 @@ static uint8_t sz_line[LINE_LENGTH];        /* input line */
 static uint8_t sz_date[LINE_LENGTH];        /* date and time string */
 
 static uint32_t ul_temp_coord = 0UL;        /* temporary for coordinate parser */
-static uint16_t ui_gps_cog = 0;             /* aircraft course over ground [°] */
-static uint16_t ui_gps_speed = 0;           /* speed [kt/10] */
-static uint16_t ui_gps_alt = 0;             /* altitude [m] */
-static uint8_t uc_gps_status = GPS_NOFIX;   /* status of GPS */
-static uint8_t uc_commas = 11;              /* counter of commas in NMEA sentence */
-static uint8_t uc_pref_index = 0;
-static uint8_t uc_date_index = 0;
+static uint16_t ui_gps_cog    = 0;          /* aircraft course over ground [°] */
+static uint16_t ui_gps_speed  = 0;          /* speed [kt/10] */
+static uint16_t ui_gps_alt    = 0;          /* altitude [m] */
+static uint8_t uc_gps_status  = 0;          /* status of GPS */
+static uint8_t uc_commas      = 11;         /* counter of commas in NMEA sentence */
+static uint8_t uc_pref_index  = 0;
+static uint8_t uc_date_index  = 0;
 
 static ENUM_NMEA_TYPE e_nmea_type;
 static STRUCT_GPS_TIME gps_time;
@@ -74,9 +82,9 @@ static Semaphore sem_gps;
 
 /*--------------------------------- Prototypes -------------------------------*/
 
-static void parse_coord( float * f_coord, uint8_t c );
-static bool cmp_prefix( const uint8_t * src , const uint8_t * dest );
-static void set_time(uint8_t * str);
+static void   parse_coord( float * f_coord, uint8_t c );
+static bool_t cmp_prefix( const uint8_t * src , const uint8_t * dest );
+static void   set_time(uint8_t * str);
 
 /*---------------------------------- Functions -------------------------------*/
 
@@ -184,8 +192,8 @@ void GPS_Parse( void ) {
 
     if (c != Q_TIMEOUT) {
   //      chSemWait(&sem_gps);
-      if (c == '$') uc_commas = 0;            /* start of NMEA sentence */
-      if (c == ',') uc_commas++;              /* count commas */
+      if (c == '$') uc_commas = 0;             /* start of NMEA sentence */
+      if (c == ',') uc_commas++;               /* count commas */
 
       switch (uc_commas) {
         case 0:
@@ -193,10 +201,11 @@ void GPS_Parse( void ) {
             sz_line[uc_pref_index++] = c;      /* read prefix */
           } else if (uc_pref_index == 6) {
             sz_line[uc_pref_index++] = 0;      /* terminate prefix */
+            sz_date[0] = 0;                    /* clear date-time string */
           }
           break;
 
-        case 1:                               /* check prefix */
+        case 1:                                /* check prefix */
           if (uc_pref_index != 0) {
             if (cmp_prefix(sz_line, (const uint8_t *)"$GPRMC")) {
               e_nmea_type = NMEA_GPRMC;
@@ -206,63 +215,63 @@ void GPS_Parse( void ) {
               e_nmea_type = NMEA_INVALID;
               uc_commas = 11;
             }
-            uc_pref_index = 0;
+            uc_pref_index = 0;                 /* clear index of prefix string */
           } else {
-            sz_date[uc_date_index++] = c;        /* get time */
+            sz_date[uc_date_index++] = c;      /* get time */
           }
           break;
 
         case 2:
-          if (e_nmea_type == NMEA_GPRMC) {    /* get fix info */
-            if (c == 'A') {
-              uc_gps_status = GPS_FIX;
+          if (e_nmea_type == NMEA_GPRMC) {     /* RMC sentence */
+            if (c == 'A') {                    /* get fix info */
+              uc_gps_status |= GPS_FIX;
             } else if (c == 'V') {
-              uc_gps_status = GPS_NOFIX;
+              uc_gps_status &= ~GPS_FIX;
             }
           }
           break;
 
         case 3:
         case 4:
-          if (e_nmea_type == NMEA_GPRMC) {    /* get latitude data */
-            parse_coord (&f_temp_lat, c);
+          if (e_nmea_type == NMEA_GPRMC) {     /* RMC sentence */
+            parse_coord (&f_temp_lat, c);      /* get latitude data */
           }
           break;
 
         case 5:
         case 6:
-          if (e_nmea_type == NMEA_GPRMC) {    /* get longitude data */
-            parse_coord (&f_temp_lon, c);
+          if (e_nmea_type == NMEA_GPRMC) {     /* RMC sentence */
+            parse_coord (&f_temp_lon, c);      /* get longitude data */
           }
           break;
 
         case 7:
-          if (e_nmea_type == NMEA_GPRMC) {    /* get speed */
+          if (e_nmea_type == NMEA_GPRMC) {     /* RMC sentence */
             if (c == ',') {
-              ui_gps_speed = 0;
+              ui_gps_speed = 0;                /* get speed */
             } else if (c != '.') {
-              ui_gps_speed *= 10;
+              ui_gps_speed *= 10;              /* finalize speed */
               ui_gps_speed += (c - '0');
             }
           }
           break;
 
         case 8:
-          if (e_nmea_type == NMEA_GPRMC) {    /* get heading */
+          if (e_nmea_type == NMEA_GPRMC) {     /* RMC sentence */
             if (c == ',') {
-                ui_gps_cog = 0;
+              ui_gps_cog = 0;                  /* get heading */
             } else if (c != '.') {
-                ui_gps_cog *= 10;
-                ui_gps_cog += (c - '0');
+              ui_gps_cog *= 10;                /* finalize heading */
+              ui_gps_cog += (c - '0');
             }
           }
           break;
 
         case 9:
           switch (e_nmea_type) {
-            case NMEA_GPRMC:                /* get date */
+            case NMEA_GPRMC:                   /* RMC sentence */
               if (c == ',') {
-                uc_date_index = 6;
+                uc_date_index = 6;             /* get date */
               } else if (uc_date_index < 12) {
                 sz_date[uc_date_index++] = c;  /* read date */
               } else {
@@ -270,43 +279,42 @@ void GPS_Parse( void ) {
               }
               break;
 
-            case NMEA_GPGGA:                /* get altitude */
+            case NMEA_GPGGA:                   /* GGA sentence */
               if (c == ',') {
-                ui_gps_alt = 0;
+                ui_gps_alt = 0;                /* clear altitude */
               } else if (c != '.') {
-                ui_gps_alt *= 10;
+                ui_gps_alt *= 10;              /* finalize altitude */
                 ui_gps_alt += (c - '0');
               }
               break;
 
-            case NMEA_INVALID:              /* invalid */
-              break;
-
-            default:                        /* error */
+            default:                           /* error */
               break;
           }
           break;
 
         case 10:
-          if (uc_gps_status == GPS_FIX) {
-            switch (e_nmea_type) {
-              case NMEA_GPRMC:              /* end of GPRMC sentence */
-                ui_gps_cog /= 10;
-                f_curr_lat = f_temp_lat;
-                f_curr_lon = f_temp_lon;
+          switch (e_nmea_type) {
+            case NMEA_GPRMC:                   /* end of RMC sentence */
+              set_time(sz_date);               /* always try to set date-time */
+              if ((uc_gps_status & GPS_FIX) != 0) { /* we have position fix */
+                ui_gps_cog /= 10;              /* finalize COG */
+                f_curr_lat = f_temp_lat;       /* finalize latitude */
+                f_curr_lon = f_temp_lon;       /* finalize longitude */
                 uc_commas = 11;
-                uc_date_index = 0;
-                set_time(sz_date);
-                break;
+                uc_date_index = 0;             /* clear index of date-time string */
+              }
+              break;
 
-              case NMEA_GPGGA:              /* end of GPGGA sentence */
-                ui_gps_alt /= 10;
+            case NMEA_GPGGA:                   /* end of GGA sentence */
+              if ((uc_gps_status & GPS_FIX) != 0) { /* we have position fix */
+                ui_gps_alt /= 10;              /* finalize altitude */
                 uc_commas = 11;
-                break;
+              }
+              break;
 
-              default:                      /* error */
-                break;
-            }
+            default:                           /* error */
+              break;
           }
           break;
 
@@ -327,9 +335,9 @@ void GPS_Parse( void ) {
  * @remarks -
  *
  *---------------------------------------------------------------------------*/
-static bool cmp_prefix( const uint8_t * src , const uint8_t * dest ) {
+static bool_t cmp_prefix( const uint8_t * src , const uint8_t * dest ) {
     uint8_t j = 0;
-    bool b_match = TRUE;
+    bool_t b_match = TRUE;
 
     while ((j < 6) && (*src != 0) && b_match) {
         b_match = (*src++ == *dest++);
@@ -348,36 +356,39 @@ static bool cmp_prefix( const uint8_t * src , const uint8_t * dest ) {
  *---------------------------------------------------------------------------*/
 static void set_time( uint8_t * str ) {
 
-  gps_time.hour  = ((*str++) - '0') * 10;
+  if (*str == 0) {                          /* null string */
+    return;                                 /* exit */
+  }
+  gps_time.hour  = ((*str++) - '0') *  10;
   gps_time.hour += ((*str++) - '0');
-  gps_time.min   = ((*str++) - '0') * 10;
+  gps_time.min   = ((*str++) - '0') *  10;
   gps_time.min  += ((*str++) - '0');
-  gps_time.sec   = ((*str++) - '0') * 10;
+  gps_time.sec   = ((*str++) - '0') *  10;
   gps_time.sec  += ((*str++) - '0');
-  gps_time.day   = ((*str++) - '0') * 10;
+  gps_time.day   = ((*str++) - '0') *  10;
   gps_time.day  += ((*str++) - '0');      
-  gps_time.mon   = ((*str++) - '0') * 10;
-  gps_time.mon  += ((*str++) - '0') - 1;
-  gps_time.year  = ((*str++) - '0') * 10;
+  gps_time.mon   = ((*str++) - '0') *  10;
+  gps_time.mon  += ((*str++) - '0') -   1;
+  gps_time.year  = ((*str++) - '0') *  10;
   gps_time.year += ((*str++) - '0') + 100; 
+
+  uc_gps_status |= GPS_TIME;                /* GPS time available */
 }
 
 /*----------------------------------------------------------------------------
  *
- * @brief   Get gps status
+ * @brief   Get gps fix status
  * @param   -
  * @returns 0 = no fix, 3 = 3d fix
  * @remarks -
  *
  *---------------------------------------------------------------------------*/
-uint8_t Gps_Status ( void ) {
-  uint8_t uc_temp;
+uint8_t Gps_Fix ( void ) {
 
 //  chSemWait(&sem_gps);
-  uc_temp = uc_gps_status;
+  return (uc_gps_status & GPS_FIX);
 //  chSemSignal(&sem_gps);
 
-  return uc_temp;
 }
 
 /*----------------------------------------------------------------------------
@@ -470,3 +481,25 @@ float Gps_Longitude ( void ) {
   return f_temp;
 }
 
+/*----------------------------------------------------------------------------
+ *
+ * @brief   Set date & time
+ * @param   time = pointer to RTC time structure
+ * @returns true if date-time has been set
+ * @remarks -
+ *
+ *---------------------------------------------------------------------------*/
+bool_t Gps_Set_Date ( struct tm *timp ) {
+
+  if ((uc_gps_status & GPS_TIME) != 0) {    /* GPS time available */
+    timp->tm_sec  = gps_time.sec;
+    timp->tm_min  = gps_time.min;
+    timp->tm_hour = gps_time.hour;
+    timp->tm_mday = gps_time.day;
+    timp->tm_mon  = gps_time.mon;
+    timp->tm_year = gps_time.year;
+    return true;
+  } else {                                  /* GPS time not available */
+    return false;
+  }
+}
