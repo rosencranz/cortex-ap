@@ -4,7 +4,9 @@
  * @file main.c
  * @brief main 
  *
- * Changes: added support and initialization for RTC
+ * Changes: 
+ *         function Gps_Status() replaced with Gps_Fix() 
+ *         RTC initialized with GPS date / time 
  *
  *============================================================================*/
 
@@ -97,7 +99,7 @@ static void SD_Init ( void ) {
  *----------------------------------------------------------------------------*/
 static void Led_Handler ( void ) {
 
-   if (Gps_Status() == GPS_FIX) {             /* satellite fix */
+   if (Gps_Fix() != 0) {                      /* position fix */
       palTogglePad(IOPORT3, GPIOC_LED4);      /* toggle blue LED */
    } else {                                   /* no fix */
       palSetPad(IOPORT3, GPIOC_LED4);         /* turn on blue LED */
@@ -279,13 +281,6 @@ int main(void) {
 
   halInit();
   chSysInit();
-  Rtc_Time.tm_sec = 0;
-  Rtc_Time.tm_min = 0;
-  Rtc_Time.tm_hour = 17;
-  Rtc_Time.tm_mday = 8;
-  Rtc_Time.tm_mon = 12 - 1;
-  Rtc_Time.tm_year = 2015 - 1900;
-  rtcSetTimeTm(&RTCD1, &Rtc_Time);
 	
   chThdSleepMilliseconds(200);
   Servo_Init();
@@ -340,6 +335,13 @@ int main(void) {
    * 0.117 + 0.104 + 0.008 + 0.18 < 0.756
    * 0.409 < 0.756
    */
+
+  /* 
+   * Loop until GPS date is avaliable 
+   */
+  while (!Gps_Set_Date(&Rtc_Time)) {
+  }
+  rtcSetTimeTm(&RTCD1, &Rtc_Time);
 
   /* main loop that does nothing */
   while (TRUE) {
